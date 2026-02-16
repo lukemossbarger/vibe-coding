@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS menu_items (
   dining_hall VARCHAR(100) NOT NULL,
   meal_period VARCHAR(20) NOT NULL,
   date TIMESTAMP NOT NULL,
+  station VARCHAR(100),
 
   -- Nutrition data
   calories INTEGER,

@@ -18,6 +18,7 @@ function convertToDbMenuItem(
     diningHall,
     mealPeriod,
     date,
+    station: scrapedItem.station ?? null,
 
     // Nutrition
     calories: scrapedItem.nutrition?.calories ?? null,

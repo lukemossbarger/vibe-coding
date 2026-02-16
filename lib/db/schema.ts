@@ -8,6 +8,7 @@ export const menuItems = pgTable("menu_items", {
   diningHall: varchar("dining_hall", { length: 100 }).notNull(),
   mealPeriod: varchar("meal_period", { length: 20 }).notNull(), // breakfast, lunch, dinner
   date: timestamp("date").notNull(),
+  station: varchar("station", { length: 100 }), // Area/station in dining hall (e.g., "Grill", "Salad Bar")
 
   // Nutrition data
   calories: integer("calories"),
