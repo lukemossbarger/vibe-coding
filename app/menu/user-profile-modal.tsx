@@ -63,11 +63,11 @@ export function UserProfileModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className="bg-white rounded-lg max-w-2xl w-full my-8 flex flex-col max-h-[calc(100vh-4rem)]">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4 overflow-y-auto">
+      <div className="bg-gradient-to-br from-white via-purple-50/30 to-blue-50/30 rounded-3xl max-w-2xl w-full my-8 flex flex-col max-h-[calc(100vh-4rem)] shadow-2xl border-2 border-purple-200">
         {/* Fixed Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
-          <h2 className="text-2xl font-bold text-gray-900">Your Profile</h2>
+        <div className="flex items-center justify-between p-6 border-b-2 border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50 rounded-t-3xl flex-shrink-0">
+          <h2 className="text-3xl font-black bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">Your Profile</h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -227,16 +227,16 @@ export function UserProfileModal({
         </div>
 
         {/* Fixed Footer with Action Buttons */}
-        <div className="flex gap-3 p-6 border-t border-gray-200 bg-gray-50 rounded-b-lg flex-shrink-0">
+        <div className="flex gap-3 p-6 border-t-2 border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50 rounded-b-3xl flex-shrink-0">
           <button
             onClick={handleSave}
-            className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors"
+            className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 via-purple-700 to-blue-600 text-white rounded-2xl font-bold hover:from-purple-700 hover:via-purple-800 hover:to-blue-700 transition-all shadow-lg hover:shadow-xl hover:scale-105"
           >
-            Save Profile
+            💾 Save Profile
           </button>
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+            className="px-6 py-3 bg-gradient-to-r from-gray-200 to-gray-300 text-gray-800 rounded-2xl font-bold hover:from-gray-300 hover:to-gray-400 transition-all shadow-md hover:shadow-lg"
           >
             Cancel
           </button>

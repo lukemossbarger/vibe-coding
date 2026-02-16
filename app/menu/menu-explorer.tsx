@@ -169,9 +169,9 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50/30 to-blue-50/20">
+    <div className="space-y-8">
       {/* Compact Sticky Filter Bar */}
-      <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-lg border-b border-gray-200 shadow-sm">
+      <div className="sticky top-0 z-30 bg-gradient-to-r from-white via-purple-50/50 to-blue-50/50 backdrop-blur-lg border-b border-purple-100 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 py-4">
           {/* Top Row: Date, Time, Search, Profile */}
           <div className="flex flex-wrap items-center gap-3 mb-3">
@@ -266,7 +266,7 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
         {/* AI Recommendations Section */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+        <div className="bg-gradient-to-br from-purple-100 via-pink-50 to-blue-100 rounded-3xl shadow-xl p-8 border-2 border-purple-200">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-1">AI Meal Recommendations</h2>
@@ -311,13 +311,13 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
             return (
               <div
                 key={diningHall}
-                className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-shadow"
+                className="bg-gradient-to-br from-white via-purple-50/20 to-blue-50/30 rounded-3xl shadow-xl overflow-hidden border-2 border-purple-100 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300"
               >
-                {/* Dining Hall Header with Gradient */}
-                <div className={`px-6 py-5 ${
+                {/* Dining Hall Header with Vibrant Gradient */}
+                <div className={`px-8 py-6 ${
                   isOpen
-                    ? "bg-gradient-to-r from-emerald-500 to-green-600"
-                    : "bg-gradient-to-r from-gray-400 to-gray-500"
+                    ? "bg-gradient-to-r from-emerald-400 via-green-500 to-teal-500 shadow-lg"
+                    : "bg-gradient-to-r from-slate-400 via-gray-500 to-slate-500"
                 }`}>
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
@@ -337,12 +337,12 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
                       </div>
                     </div>
                     {isOpen && (
-                      <div className="flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-xl">
-                        <span className="relative flex h-3 w-3">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+                      <div className="flex items-center gap-2 px-5 py-2.5 bg-white/30 backdrop-blur-md rounded-2xl shadow-lg border-2 border-white/50">
+                        <span className="relative flex h-4 w-4">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-300 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-4 w-4 bg-yellow-400 shadow-lg"></span>
                         </span>
-                        <span className="text-white font-bold text-sm">OPEN NOW</span>
+                        <span className="text-white font-black text-base tracking-wide drop-shadow-lg">OPEN NOW</span>
                       </div>
                     )}
                   </div>
@@ -354,7 +354,7 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
                     {hallItems.map((item) => (
                       <div
                         key={item.id}
-                        className="bg-gradient-to-br from-gray-50 to-white rounded-xl border border-gray-200 hover:border-purple-300 hover:shadow-md transition-all p-4 group"
+                        className="bg-gradient-to-br from-white via-purple-50/30 to-blue-50/40 rounded-2xl border-2 border-purple-200 hover:border-purple-400 hover:shadow-xl hover:scale-105 transition-all duration-300 p-5 group cursor-pointer"
                       >
                         {/* Item Header */}
                         <div className="mb-3">
@@ -374,7 +374,7 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
 
                         {/* Nutrition Info */}
                         {item.calories && (
-                          <div className="mb-3 p-3 bg-white rounded-lg border border-gray-100">
+                          <div className="mb-3 p-3 bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl border-2 border-purple-200 shadow-sm">
                             <div className="grid grid-cols-2 gap-2 text-xs">
                               <div className="flex justify-between">
                                 <span className="text-gray-600">Cal</span>
@@ -403,34 +403,34 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
                         )}
 
                         {/* Dietary Tags */}
-                        <div className="flex flex-wrap gap-1.5">
+                        <div className="flex flex-wrap gap-2">
                           {item.isVegetarian && (
-                            <span className="px-2 py-1 bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 text-xs rounded-lg font-medium">
+                            <span className="px-3 py-1.5 bg-gradient-to-r from-green-200 via-emerald-200 to-teal-200 text-green-800 text-xs rounded-full font-bold shadow-md border-2 border-green-300">
                               🌱 Vegetarian
                             </span>
                           )}
                           {item.isVegan && (
-                            <span className="px-2 py-1 bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 text-xs rounded-lg font-medium">
+                            <span className="px-3 py-1.5 bg-gradient-to-r from-lime-200 via-green-200 to-emerald-200 text-green-800 text-xs rounded-full font-bold shadow-md border-2 border-green-300">
                               🥬 Vegan
                             </span>
                           )}
                           {item.isGlutenFree && (
-                            <span className="px-2 py-1 bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-700 text-xs rounded-lg font-medium">
+                            <span className="px-3 py-1.5 bg-gradient-to-r from-blue-200 via-cyan-200 to-sky-200 text-blue-800 text-xs rounded-full font-bold shadow-md border-2 border-blue-300">
                               🌾 GF
                             </span>
                           )}
                           {item.isKosher && (
-                            <span className="px-2 py-1 bg-gradient-to-r from-purple-100 to-violet-100 text-purple-700 text-xs rounded-lg font-medium">
+                            <span className="px-3 py-1.5 bg-gradient-to-r from-purple-200 via-violet-200 to-indigo-200 text-purple-800 text-xs rounded-full font-bold shadow-md border-2 border-purple-300">
                               ✡️ Kosher
                             </span>
                           )}
                           {item.isDairyFree && (
-                            <span className="px-2 py-1 bg-gradient-to-r from-yellow-100 to-amber-100 text-yellow-700 text-xs rounded-lg font-medium">
+                            <span className="px-3 py-1.5 bg-gradient-to-r from-yellow-200 via-amber-200 to-orange-200 text-yellow-800 text-xs rounded-full font-bold shadow-md border-2 border-yellow-300">
                               🥛 DF
                             </span>
                           )}
                           {item.isNutFree && (
-                            <span className="px-2 py-1 bg-gradient-to-r from-orange-100 to-red-100 text-orange-700 text-xs rounded-lg font-medium">
+                            <span className="px-3 py-1.5 bg-gradient-to-r from-orange-200 via-red-200 to-rose-200 text-orange-800 text-xs rounded-full font-bold shadow-md border-2 border-orange-300">
                               🥜 NF
                             </span>
                           )}
@@ -446,8 +446,8 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
 
         {/* Empty State */}
         {filteredItems.length === 0 && (
-          <div className="text-center py-20 bg-white rounded-2xl shadow-lg border border-gray-100">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-100 to-blue-100 rounded-2xl mb-4">
+          <div className="text-center py-20 bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 rounded-3xl shadow-xl border-2 border-purple-200">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-purple-200 via-pink-200 to-blue-200 rounded-3xl mb-6 shadow-lg">
               <svg className="w-8 h-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
