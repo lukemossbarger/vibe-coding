@@ -7,10 +7,21 @@ export const dynamic = "force-dynamic";
 
 async function getMenuData() {
   // Get all menu items with the most recent first
-  const items = await db
+  const rawItems = await db
     .select()
     .from(menuItems)
     .orderBy(desc(menuItems.date), menuItems.diningHall, menuItems.mealPeriod);
+
+  // Convert null dietary flags to false
+  const items = rawItems.map((item) => ({
+    ...item,
+    isVegetarian: item.isVegetarian ?? false,
+    isVegan: item.isVegan ?? false,
+    isGlutenFree: item.isGlutenFree ?? false,
+    isKosher: item.isKosher ?? false,
+    isDairyFree: item.isDairyFree ?? false,
+    isNutFree: item.isNutFree ?? false,
+  }));
 
   // Get unique dining halls
   const diningHalls = await db
@@ -36,14 +47,14 @@ export default async function MenuPage() {
   const data = await getMenuData();
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50/30 to-blue-50/30">
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-gray-900 via-purple-900 to-blue-900 bg-clip-text text-transparent mb-3">
             Menu Explorer
           </h1>
-          <p className="text-gray-600">
-            Browse {data.items.length} menu items across {data.diningHalls.length} dining halls
+          <p className="text-lg text-gray-600 font-medium">
+            {data.items.length} items • {data.diningHalls.length} dining halls
           </p>
         </div>
 

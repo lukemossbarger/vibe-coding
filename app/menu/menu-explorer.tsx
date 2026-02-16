@@ -152,154 +152,107 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
     });
   }, [items, selectedDate, selectedDateTime, selectedHall, selectedMeal, searchTerm, dietaryFilters, showOnlyOpen]);
 
+  // Group items by dining hall
+  const itemsByDiningHall = useMemo(() => {
+    const grouped = filteredItems.reduce((acc, item) => {
+      if (!acc[item.diningHall]) {
+        acc[item.diningHall] = [];
+      }
+      acc[item.diningHall].push(item);
+      return acc;
+    }, {} as Record<string, MenuItem[]>);
+    return grouped;
+  }, [filteredItems]);
+
   const toggleDietaryFilter = (filter: keyof typeof dietaryFilters) => {
     setDietaryFilters((prev) => ({ ...prev, [filter]: !prev[filter] }));
   };
 
   return (
-    <div className="space-y-6">
-      {/* AI Recommendations with Profile Button */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-gray-900">AI Meal Recommendations</h2>
-          <button
-            onClick={() => setShowProfileModal(true)}
-            className="px-4 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors flex items-center gap-2"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-            {userProfile.fitnessGoal ? "Edit Profile" : "Set Up Profile"}
-          </button>
-        </div>
-        {filteredItems.length > 0 ? (
-          <Recommendations
-            userProfile={userProfile}
-            availableItems={filteredItems}
-            diningHall={selectedHall !== "all" ? selectedHall : undefined}
-            mealPeriod={selectedMeal !== "all" ? selectedMeal : undefined}
-          />
-        ) : (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-sm text-blue-800">
-              No menu items available for the selected filters. Try adjusting your date, time, or filters.
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* Filters */}
-      <div className="bg-white rounded-lg shadow p-6 space-y-4">
-        {/* Date and Time Selection */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pb-4 border-b border-gray-200">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Date
-            </label>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50/30 to-blue-50/20">
+      {/* Compact Sticky Filter Bar */}
+      <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-lg border-b border-gray-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          {/* Top Row: Date, Time, Search, Profile */}
+          <div className="flex flex-wrap items-center gap-3 mb-3">
             <input
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="px-3 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Time
-            </label>
             <input
               type="time"
               value={selectedTime}
               onChange={(e) => setSelectedTime(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="px-3 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
             />
-          </div>
-          <div className="flex items-end">
-            <label className="flex items-center gap-2 cursor-pointer">
+            <label className="flex items-center gap-2 cursor-pointer px-3 py-2 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
               <input
                 type="checkbox"
                 checked={showOnlyOpen}
                 onChange={(e) => setShowOnlyOpen(e.target.checked)}
                 className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
               />
-              <span className="text-sm font-medium text-gray-700">
-                Show only open dining halls
-              </span>
+              <span className="text-sm font-medium text-gray-700">Open Only</span>
             </label>
+            <input
+              type="text"
+              placeholder="Search dishes..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="flex-1 min-w-[200px] px-4 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            />
+            <button
+              onClick={() => setShowProfileModal(true)}
+              className="px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-medium hover:from-purple-700 hover:to-purple-800 transition-all shadow-sm hover:shadow-md flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              {userProfile.fitnessGoal ? "Profile" : "Setup"}
+            </button>
           </div>
-        </div>
 
-        {/* Search */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Search
-          </label>
-          <input
-            type="text"
-            placeholder="Search for a dish..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          />
-        </div>
-
-        {/* Dining Hall and Meal Period */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Dining Hall
-            </label>
+          {/* Second Row: Hall, Meal, Dietary Filters */}
+          <div className="flex flex-wrap items-center gap-2">
             <select
               value={selectedHall}
               onChange={(e) => setSelectedHall(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="px-3 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
             >
-              <option value="all">All Dining Halls</option>
+              <option value="all">All Halls</option>
               {diningHalls.map((hall) => (
                 <option key={hall} value={hall}>
-                  {hall}
+                  {hall.replace(" Dining Commons", "").replace("Foster Walker ", "FW")}
                 </option>
               ))}
             </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Meal Period
-            </label>
             <select
               value={selectedMeal}
               onChange={(e) => setSelectedMeal(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="px-3 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
             >
               <option value="all">All Meals</option>
               <option value="breakfast">Breakfast</option>
               <option value="lunch">Lunch</option>
               <option value="dinner">Dinner</option>
             </select>
-          </div>
-        </div>
-
-        {/* Dietary Filters */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Dietary Preferences
-          </label>
-          <div className="flex flex-wrap gap-2">
+            <div className="h-6 w-px bg-gray-300 mx-1"></div>
             {[
-              { key: "vegetarian", label: "Vegetarian" },
-              { key: "vegan", label: "Vegan" },
-              { key: "glutenFree", label: "Gluten Free" },
-              { key: "kosher", label: "Kosher" },
-              { key: "dairyFree", label: "Dairy Free" },
-              { key: "nutFree", label: "Nut Free" },
+              { key: "vegetarian", label: "🌱 Vegetarian" },
+              { key: "vegan", label: "🥬 Vegan" },
+              { key: "glutenFree", label: "🌾 Gluten Free" },
+              { key: "kosher", label: "✡️ Kosher" },
+              { key: "dairyFree", label: "🥛 Dairy Free" },
+              { key: "nutFree", label: "🥜 Nut Free" },
             ].map(({ key, label }) => (
               <button
                 key={key}
                 onClick={() => toggleDietaryFilter(key as keyof typeof dietaryFilters)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
                   dietaryFilters[key as keyof typeof dietaryFilters]
-                    ? "bg-purple-600 text-white"
+                    ? "bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-sm"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
@@ -308,159 +261,204 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
             ))}
           </div>
         </div>
+      </div>
 
-        {/* Dining Hall Status */}
-        <div className="pt-4 border-t border-gray-200">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Dining Hall Status
-          </label>
-          <div className="flex flex-wrap gap-2">
-            {Object.entries(DINING_HALL_SCHEDULES).map(([hallName, schedule]) => {
-              const currentMeal = getCurrentMealPeriod(hallName, selectedDateTime);
-              const isOpen = currentMeal !== null;
-              const mealTime = currentMeal ? schedule.meals[currentMeal as MealPeriod] : null;
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
+        {/* AI Recommendations Section */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-1">AI Meal Recommendations</h2>
+              <p className="text-sm text-gray-600">Personalized suggestions based on your profile</p>
+            </div>
+          </div>
+          {filteredItems.length > 0 ? (
+            <Recommendations
+              userProfile={userProfile}
+              availableItems={filteredItems}
+              diningHall={selectedHall !== "all" ? selectedHall : undefined}
+              mealPeriod={selectedMeal !== "all" ? selectedMeal : undefined}
+            />
+          ) : (
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6">
+              <p className="text-sm text-blue-900 font-medium">
+                No menu items available for the selected filters. Try adjusting your date, time, or filters.
+              </p>
+            </div>
+          )}
+        </div>
 
-              return (
-                <div
-                  key={hallName}
-                  className={`px-3 py-2 rounded-lg text-sm ${
-                    isOpen
-                      ? "bg-green-100 text-green-800"
-                      : "bg-gray-100 text-gray-500"
-                  }`}
-                >
-                  <div className="font-medium">{hallName.replace(" Dining Commons", "").replace("Foster Walker ", "")}</div>
-                  <div className="text-xs">
-                    {isOpen && currentMeal && mealTime ? (
-                      <>
-                        <span className="capitalize">{currentMeal}</span> ({formatMealTime(mealTime)})
-                      </>
-                    ) : (
-                      "Closed"
+        {/* Results Count */}
+        <div className="flex items-center justify-between px-2">
+          <h3 className="text-2xl font-bold text-gray-900">
+            {Object.keys(itemsByDiningHall).length === 0
+              ? "No Dining Halls Available"
+              : `${Object.keys(itemsByDiningHall).length} Dining ${Object.keys(itemsByDiningHall).length === 1 ? "Hall" : "Halls"}`}
+          </h3>
+          <span className="text-sm text-gray-600 font-medium">
+            {filteredItems.length} {filteredItems.length === 1 ? "item" : "items"} total
+          </span>
+        </div>
+
+        {/* Dining Halls - Grouped Cards */}
+        <div className="space-y-6">
+          {Object.entries(itemsByDiningHall).map(([diningHall, hallItems]) => {
+            const currentMeal = getCurrentMealPeriod(diningHall, selectedDateTime);
+            const isOpen = currentMeal !== null;
+            const mealTime = currentMeal ? DINING_HALL_SCHEDULES[diningHall]?.meals[currentMeal as MealPeriod] : null;
+
+            return (
+              <div
+                key={diningHall}
+                className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-shadow"
+              >
+                {/* Dining Hall Header with Gradient */}
+                <div className={`px-6 py-5 ${
+                  isOpen
+                    ? "bg-gradient-to-r from-emerald-500 to-green-600"
+                    : "bg-gradient-to-r from-gray-400 to-gray-500"
+                }`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <h3 className="text-2xl font-bold text-white mb-1">
+                        {diningHall.replace(" Dining Commons", "").replace("Foster Walker ", "Foster Walker")}
+                      </h3>
+                      <div className="flex items-center gap-3 text-white/90">
+                        {isOpen && currentMeal && mealTime ? (
+                          <>
+                            <span className="text-sm font-medium capitalize">{currentMeal}</span>
+                            <span className="text-sm">•</span>
+                            <span className="text-sm">{formatMealTime(mealTime)}</span>
+                          </>
+                        ) : (
+                          <span className="text-sm font-medium">Closed</span>
+                        )}
+                      </div>
+                    </div>
+                    {isOpen && (
+                      <div className="flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-xl">
+                        <span className="relative flex h-3 w-3">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+                        </span>
+                        <span className="text-white font-bold text-sm">OPEN NOW</span>
+                      </div>
                     )}
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        </div>
 
-        {/* Results count */}
-        <div className="text-sm text-gray-600 pt-2 border-t">
-          Showing {filteredItems.length} items
-        </div>
-      </div>
+                {/* Items Grid */}
+                <div className="p-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {hallItems.map((item) => (
+                      <div
+                        key={item.id}
+                        className="bg-gradient-to-br from-gray-50 to-white rounded-xl border border-gray-200 hover:border-purple-300 hover:shadow-md transition-all p-4 group"
+                      >
+                        {/* Item Header */}
+                        <div className="mb-3">
+                          <h4 className="font-semibold text-base text-gray-900 mb-1 group-hover:text-purple-700 transition-colors">
+                            {item.name}
+                          </h4>
+                          <div className="flex items-center gap-2 text-xs text-gray-600">
+                            <span className="capitalize font-medium text-purple-600">{item.mealPeriod}</span>
+                            {item.station && (
+                              <>
+                                <span>•</span>
+                                <span className="font-medium">{item.station}</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
 
-      {/* Menu Items Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredItems.map((item) => {
-          const isHallOpen = isDiningHallOpen(item.diningHall, selectedDateTime);
-          const currentMeal = getCurrentMealPeriod(item.diningHall, selectedDateTime);
+                        {/* Nutrition Info */}
+                        {item.calories && (
+                          <div className="mb-3 p-3 bg-white rounded-lg border border-gray-100">
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">Cal</span>
+                                <span className="font-bold text-gray-900">{item.calories}</span>
+                              </div>
+                              {item.protein && (
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Protein</span>
+                                  <span className="font-bold text-gray-900">{item.protein}g</span>
+                                </div>
+                              )}
+                              {item.carbs && (
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Carbs</span>
+                                  <span className="font-bold text-gray-900">{item.carbs}g</span>
+                                </div>
+                              )}
+                              {item.fat && (
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Fat</span>
+                                  <span className="font-bold text-gray-900">{item.fat}g</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
 
-          return (
-            <div
-              key={item.id}
-              className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow p-4"
-            >
-              <div className="mb-3">
-                <div className="flex items-start justify-between mb-1">
-                  <h3 className="font-semibold text-lg text-gray-900 flex-1">
-                    {item.name}
-                  </h3>
-                  {isHallOpen && currentMeal === item.mealPeriod && (
-                    <span className="ml-2 px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full flex-shrink-0">
-                      Open Now
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <span>{item.diningHall}</span>
-                  <span>•</span>
-                  <span className="capitalize">{item.mealPeriod}</span>
-                  {item.station && (
-                    <>
-                      <span>•</span>
-                      <span className="text-purple-600 font-medium">{item.station}</span>
-                    </>
-                  )}
-                </div>
-              </div>
-
-            {/* Nutrition Info */}
-            {item.calories && (
-              <div className="mb-3 p-3 bg-gray-50 rounded-lg">
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div>
-                    <span className="text-gray-600">Calories:</span>
-                    <span className="ml-1 font-medium">{item.calories}</span>
+                        {/* Dietary Tags */}
+                        <div className="flex flex-wrap gap-1.5">
+                          {item.isVegetarian && (
+                            <span className="px-2 py-1 bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 text-xs rounded-lg font-medium">
+                              🌱 Vegetarian
+                            </span>
+                          )}
+                          {item.isVegan && (
+                            <span className="px-2 py-1 bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 text-xs rounded-lg font-medium">
+                              🥬 Vegan
+                            </span>
+                          )}
+                          {item.isGlutenFree && (
+                            <span className="px-2 py-1 bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-700 text-xs rounded-lg font-medium">
+                              🌾 GF
+                            </span>
+                          )}
+                          {item.isKosher && (
+                            <span className="px-2 py-1 bg-gradient-to-r from-purple-100 to-violet-100 text-purple-700 text-xs rounded-lg font-medium">
+                              ✡️ Kosher
+                            </span>
+                          )}
+                          {item.isDairyFree && (
+                            <span className="px-2 py-1 bg-gradient-to-r from-yellow-100 to-amber-100 text-yellow-700 text-xs rounded-lg font-medium">
+                              🥛 DF
+                            </span>
+                          )}
+                          {item.isNutFree && (
+                            <span className="px-2 py-1 bg-gradient-to-r from-orange-100 to-red-100 text-orange-700 text-xs rounded-lg font-medium">
+                              🥜 NF
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  {item.protein && (
-                    <div>
-                      <span className="text-gray-600">Protein:</span>
-                      <span className="ml-1 font-medium">{item.protein}g</span>
-                    </div>
-                  )}
-                  {item.carbs && (
-                    <div>
-                      <span className="text-gray-600">Carbs:</span>
-                      <span className="ml-1 font-medium">{item.carbs}g</span>
-                    </div>
-                  )}
-                  {item.fat && (
-                    <div>
-                      <span className="text-gray-600">Fat:</span>
-                      <span className="ml-1 font-medium">{item.fat}g</span>
-                    </div>
-                  )}
                 </div>
               </div>
-            )}
-
-            {/* Dietary Tags */}
-            <div className="flex flex-wrap gap-1">
-              {item.isVegetarian && (
-                <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
-                  Vegetarian
-                </span>
-              )}
-              {item.isVegan && (
-                <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
-                  Vegan
-                </span>
-              )}
-              {item.isGlutenFree && (
-                <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
-                  Gluten Free
-                </span>
-              )}
-              {item.isKosher && (
-                <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full">
-                  Kosher
-                </span>
-              )}
-              {item.isDairyFree && (
-                <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">
-                  Dairy Free
-                </span>
-              )}
-              {item.isNutFree && (
-                <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded-full">
-                  Nut Free
-                </span>
-              )}
-            </div>
-          </div>
-          );
-        })}
-      </div>
-
-      {filteredItems.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-gray-500 text-lg">
-            No items found matching your filters
-          </p>
+            );
+          })}
         </div>
-      )}
+
+        {/* Empty State */}
+        {filteredItems.length === 0 && (
+          <div className="text-center py-20 bg-white rounded-2xl shadow-lg border border-gray-100">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-100 to-blue-100 rounded-2xl mb-4">
+              <svg className="w-8 h-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">No items found</h3>
+            <p className="text-gray-600 max-w-md mx-auto">
+              Try adjusting your filters or check back later when dining halls are open.
+            </p>
+          </div>
+        )}
+      </div>
 
       {/* User Profile Modal */}
       <UserProfileModal
