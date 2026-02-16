@@ -22,7 +22,7 @@
 - [x] Database schema for menu items with:
   - Basic info (name, dining hall, meal period, date, station)
   - Nutrition data (calories, protein, carbs, fat, fiber, sugar, sodium)
-  - Dietary tags (vegetarian, vegan, gluten-free, kosher, dairy-free, nut-free)
+  - Dietary tags (IMPLEMENTED: vegetarian, vegan, gluten-free, kosher, NOT IMPLEMENTED: dairy-free, nut-free)
   - Serving size, ingredients, allergens
 - [x] Database schema for user preferences
 - [x] Duplicate detection when saving menu data
@@ -55,7 +55,7 @@
 
 ### AI-Powered Recommendations
 - [x] Claude Sonnet 4.5 integration (Anthropic API)
-- [x] OpenAI GPT-4 fallback support
+- [x] NOT IMPLEMENTED: OpenAI GPT-4 fallback support
 - [x] User profile system with:
   - Physical attributes (age, height, weight, gender)
   - Activity level selection

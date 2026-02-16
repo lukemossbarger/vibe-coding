@@ -23,12 +23,16 @@ export function UserProfileModal({
   onSave,
   initialProfile,
 }: UserProfileModalProps) {
-  const [profile, setProfile] = useState<UserProfile>(
-    initialProfile || {
-      activityLevel: "moderate",
-      fitnessGoal: "maintain",
-    }
-  );
+  // Initialize all fields to prevent controlled/uncontrolled input errors
+  const [profile, setProfile] = useState<UserProfile>({
+    activityLevel: "moderate",
+    fitnessGoal: "maintain",
+    age: undefined,
+    gender: undefined,
+    height: undefined,
+    weight: undefined,
+    ...initialProfile,
+  });
 
   if (!isOpen) return null;
 
@@ -59,20 +63,23 @@ export function UserProfileModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-gray-900">Your Profile</h2>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+      <div className="bg-white rounded-lg max-w-2xl w-full my-8 flex flex-col max-h-[calc(100vh-4rem)]">
+        {/* Fixed Header */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
+          <h2 className="text-2xl font-bold text-gray-900">Your Profile</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Scrollable Content */}
+        <div className="p-6 space-y-6 overflow-y-auto flex-1">
 
           {/* Physical Attributes */}
           <div>
@@ -86,10 +93,11 @@ export function UserProfileModal({
                 </label>
                 <input
                   type="number"
-                  value={profile.age || ""}
-                  onChange={(e) =>
-                    setProfile({ ...profile, age: parseInt(e.target.value) || undefined })
-                  }
+                  value={profile.age ?? ""}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setProfile({ ...profile, age: val ? parseInt(val) : undefined });
+                  }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                   placeholder="25"
                 />
@@ -99,10 +107,11 @@ export function UserProfileModal({
                   Gender
                 </label>
                 <select
-                  value={profile.gender || ""}
-                  onChange={(e) =>
-                    setProfile({ ...profile, gender: (e.target.value as Gender) || undefined })
-                  }
+                  value={profile.gender ?? ""}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setProfile({ ...profile, gender: val ? (val as Gender) : undefined });
+                  }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                 >
                   <option value="">Select...</option>
@@ -117,10 +126,11 @@ export function UserProfileModal({
                 </label>
                 <input
                   type="number"
-                  value={profile.height || ""}
-                  onChange={(e) =>
-                    setProfile({ ...profile, height: parseInt(e.target.value) || undefined })
-                  }
+                  value={profile.height ?? ""}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setProfile({ ...profile, height: val ? parseInt(val) : undefined });
+                  }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                   placeholder="70"
                 />
@@ -131,10 +141,11 @@ export function UserProfileModal({
                 </label>
                 <input
                   type="number"
-                  value={profile.weight || ""}
-                  onChange={(e) =>
-                    setProfile({ ...profile, weight: parseInt(e.target.value) || undefined })
-                  }
+                  value={profile.weight ?? ""}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setProfile({ ...profile, weight: val ? parseInt(val) : undefined });
+                  }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                   placeholder="180"
                 />
@@ -201,7 +212,7 @@ export function UserProfileModal({
                 <label key={key} className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={profile[key as keyof UserProfile] as boolean}
+                    checked={(profile[key as keyof UserProfile] as boolean) || false}
                     onChange={(e) =>
                       setProfile({ ...profile, [key]: e.target.checked })
                     }
@@ -213,21 +224,22 @@ export function UserProfileModal({
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-3 pt-4 border-t">
-            <button
-              onClick={handleSave}
-              className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors"
-            >
-              Save Profile
-            </button>
-            <button
-              onClick={onClose}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors"
-            >
-              Cancel
-            </button>
-          </div>
+        </div>
+
+        {/* Fixed Footer with Action Buttons */}
+        <div className="flex gap-3 p-6 border-t border-gray-200 bg-gray-50 rounded-b-lg flex-shrink-0">
+          <button
+            onClick={handleSave}
+            className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors"
+          >
+            Save Profile
+          </button>
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+          >
+            Cancel
+          </button>
         </div>
       </div>
     </div>
