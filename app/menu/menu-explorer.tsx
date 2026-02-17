@@ -9,8 +9,12 @@ import {
   type MealPeriod,
 } from "@/lib/dining-halls/schedule";
 import { UserProfile } from "@/lib/types/user-profile";
+import { useMealStore } from "@/lib/stores/meal-store";
 import { UserProfileModal } from "./user-profile-modal";
 import { Recommendations } from "./recommendations";
+import { TabNavigation } from "./components/tab-navigation";
+import { RecommendationsTab } from "./components/recommendations-tab";
+import { TodaysMealsTab } from "./components/todays-meals-tab";
 
 type MenuItem = {
   id: string;
@@ -55,6 +59,7 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
   const [selectedMeal, setSelectedMeal] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [showOnlyOpen, setShowOnlyOpen] = useState(true);
+  const [activeTab, setActiveTab] = useState<'explore' | 'recommendations' | 'today'>('explore');
   const [dietaryFilters, setDietaryFilters] = useState({
     vegetarian: false,
     vegan: false,
@@ -64,29 +69,54 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
     nutFree: false,
   });
 
-  // User profile state with localStorage persistence
+  // Today's consumed totals from meal store
+  const today = new Date().toISOString().split("T")[0];
+  const getTotalsForDate = useMealStore((state) => state.getTotalsForDate);
+  const consumedTotals = getTotalsForDate(today);
+
+  // User profile state with backend persistence
   const [userProfile, setUserProfile] = useState<UserProfile>({});
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(true);
 
-  // Load profile from localStorage after component mounts (client-side only)
+  // Load profile from backend after component mounts
   useEffect(() => {
     setMounted(true);
-    const saved = localStorage.getItem("userProfile");
-    if (saved) {
-      try {
-        setUserProfile(JSON.parse(saved));
-      } catch {
-        // Ignore parse errors
-      }
-    }
+    fetchProfile();
   }, []);
 
-  // Save profile to localStorage when it changes
-  const handleSaveProfile = (profile: UserProfile) => {
-    setUserProfile(profile);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("userProfile", JSON.stringify(profile));
+  const fetchProfile = async () => {
+    try {
+      const response = await fetch('/api/profile');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.profile) {
+          setUserProfile(data.profile);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch profile:', error);
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
+  // Save profile to backend when it changes
+  const handleSaveProfile = async (profile: UserProfile) => {
+    try {
+      const response = await fetch('/api/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(profile),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUserProfile(data.profile);
+      }
+    } catch (error) {
+      console.error('Failed to save profile:', error);
     }
   };
 
@@ -263,8 +293,12 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
         </div>
       </div>
 
+      {/* Tab Navigation */}
+      <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
+      {activeTab === 'explore' && (
+        <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
         {/* AI Recommendations Section */}
         <div className="bg-gradient-to-br from-purple-100 via-pink-50 to-blue-100 rounded-3xl shadow-xl p-8 border-2 border-purple-200">
           <div className="flex items-center justify-between mb-4">
@@ -459,6 +493,23 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
           </div>
         )}
       </div>
+      )}
+
+      {/* Recommendations Tab */}
+      {activeTab === 'recommendations' && (
+        <RecommendationsTab
+          userProfile={userProfile}
+          availableItems={filteredItems}
+          diningHall={selectedHall !== "all" ? selectedHall : undefined}
+          mealPeriod={selectedMeal !== "all" ? selectedMeal : undefined}
+          consumedTotals={consumedTotals}
+        />
+      )}
+
+      {/* Today's Meals Tab */}
+      {activeTab === 'today' && (
+        <TodaysMealsTab userProfile={userProfile} />
+      )}
 
       {/* User Profile Modal */}
       <UserProfileModal

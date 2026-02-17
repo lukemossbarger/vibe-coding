@@ -7,10 +7,12 @@ interface MenuItem {
   name: string;
   diningHall: string;
   mealPeriod: string;
+  station: string | null;
   calories: number | null;
   protein: number | null;
   carbs: number | null;
   fat: number | null;
+  sugar: number | null;
   isVegetarian: boolean;
   isVegan: boolean;
   isGlutenFree: boolean;
@@ -20,24 +22,34 @@ interface MenuItem {
   ingredients: string | null;
 }
 
+interface ConsumedTotals {
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  sugar: number;
+}
+
 interface RecommendationRequest {
   userProfile: UserProfile;
   availableItems: MenuItem[];
   diningHall?: string;
   mealPeriod?: string;
+  consumedTotals?: ConsumedTotals;
 }
 
 async function getRecommendationFromClaude(
   userProfile: UserProfile,
   items: MenuItem[],
   diningHall?: string,
-  mealPeriod?: string
+  mealPeriod?: string,
+  consumedTotals?: ConsumedTotals
 ): Promise<string> {
   const anthropic = new Anthropic({
     apiKey: process.env.ANTHROPIC_API_KEY,
   });
 
-  const prompt = buildPrompt(userProfile, items, diningHall, mealPeriod);
+  const prompt = buildPrompt(userProfile, items, diningHall, mealPeriod, consumedTotals);
 
   const message = await anthropic.messages.create({
     model: "claude-sonnet-4-5-20250929",
@@ -62,13 +74,14 @@ async function getRecommendationFromOpenAI(
   userProfile: UserProfile,
   items: MenuItem[],
   diningHall?: string,
-  mealPeriod?: string
+  mealPeriod?: string,
+  consumedTotals?: ConsumedTotals
 ): Promise<string> {
   const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
   });
 
-  const prompt = buildPrompt(userProfile, items, diningHall, mealPeriod);
+  const prompt = buildPrompt(userProfile, items, diningHall, mealPeriod, consumedTotals);
 
   const completion = await openai.chat.completions.create({
     model: "gpt-4o",
@@ -89,17 +102,43 @@ async function getRecommendationFromOpenAI(
   return completion.choices[0].message.content || "No recommendation available.";
 }
 
+function formatItemCompact(item: MenuItem): string {
+  const parts = [item.name];
+  const nutrition: string[] = [];
+  if (item.calories) nutrition.push(`${item.calories}cal`);
+  if (item.protein) nutrition.push(`${item.protein}gP`);
+  if (item.carbs) nutrition.push(`${item.carbs}gC`);
+  if (item.fat) nutrition.push(`${item.fat}gF`);
+  if (item.sugar) nutrition.push(`${item.sugar}gS`);
+  if (nutrition.length > 0) parts.push(`(${nutrition.join("/")})`);
+
+  const tags: string[] = [];
+  if (item.isVegetarian) tags.push("V");
+  if (item.isVegan) tags.push("VG");
+  if (item.isGlutenFree) tags.push("GF");
+  if (tags.length > 0) parts.push(`[${tags.join(",")}]`);
+
+  return parts.join(" ");
+}
+
 function buildPrompt(
   userProfile: UserProfile,
   items: MenuItem[],
   diningHall?: string,
-  mealPeriod?: string
+  mealPeriod?: string,
+  consumedTotals?: ConsumedTotals
 ): string {
+  // Calculate per-meal targets (assume 3 meals per day)
+  const mealCalTarget = userProfile.targetCalories ? Math.round(userProfile.targetCalories / 3) : null;
+  const mealProteinTarget = userProfile.targetProtein ? Math.round(userProfile.targetProtein / 3) : null;
+  const mealCarbsTarget = userProfile.targetCarbs ? Math.round(userProfile.targetCarbs / 3) : null;
+  const mealFatTarget = userProfile.targetFat ? Math.round(userProfile.targetFat / 3) : null;
+
   // Build user context
-  let userContext = "User Profile:\n";
+  let userContext = "USER PROFILE:\n";
 
   if (userProfile.height && userProfile.weight && userProfile.age && userProfile.gender) {
-    userContext += `- ${userProfile.age} year old ${userProfile.gender}, ${userProfile.height}" tall, ${userProfile.weight} lbs\n`;
+    userContext += `${userProfile.age}yo ${userProfile.gender}, ${userProfile.height}" tall, ${userProfile.weight} lbs\n`;
   }
 
   if (userProfile.fitnessGoal) {
@@ -109,20 +148,16 @@ function buildPrompt(
       gain_muscle: "Gain Muscle",
       gain_weight: "Gain Weight",
     };
-    userContext += `- Goal: ${goalDescriptions[userProfile.fitnessGoal]}\n`;
+    userContext += `Goal: ${goalDescriptions[userProfile.fitnessGoal]}\n`;
   }
 
-  if (userProfile.targetCalories) {
-    userContext += `- Daily Calorie Target: ${userProfile.targetCalories} calories\n`;
-  }
-
-  if (userProfile.targetProtein || userProfile.targetCarbs || userProfile.targetFat) {
-    userContext += `- Macro Targets: `;
-    const macros = [];
-    if (userProfile.targetProtein) macros.push(`${userProfile.targetProtein}g protein`);
-    if (userProfile.targetCarbs) macros.push(`${userProfile.targetCarbs}g carbs`);
-    if (userProfile.targetFat) macros.push(`${userProfile.targetFat}g fat`);
-    userContext += macros.join(", ") + "\n";
+  if (mealCalTarget) {
+    userContext += `\nPER-MEAL TARGETS (1/3 of daily):\n`;
+    userContext += `~${mealCalTarget} calories`;
+    if (mealProteinTarget) userContext += `, ~${mealProteinTarget}g protein`;
+    if (mealCarbsTarget) userContext += `, ~${mealCarbsTarget}g carbs`;
+    if (mealFatTarget) userContext += `, ~${mealFatTarget}g fat`;
+    userContext += `\n`;
   }
 
   // Dietary restrictions
@@ -135,63 +170,76 @@ function buildPrompt(
   if (userProfile.isNutFree) restrictions.push("Nut-Free");
 
   if (restrictions.length > 0) {
-    userContext += `- Dietary Restrictions: ${restrictions.join(", ")}\n`;
+    userContext += `Dietary Restrictions: ${restrictions.join(", ")}\n`;
   }
 
-  if (userProfile.dislikedIngredients && userProfile.dislikedIngredients.length > 0) {
-    userContext += `- Dislikes: ${userProfile.dislikedIngredients.join(", ")}\n`;
+  // Add consumed totals context
+  if (consumedTotals && (consumedTotals.calories > 0 || consumedTotals.protein > 0)) {
+    userContext += `\nALREADY EATEN TODAY: ${consumedTotals.calories}cal, ${consumedTotals.protein}gP, ${consumedTotals.carbs}gC, ${consumedTotals.fat}gF, ${consumedTotals.sugar}gS\n`;
+
+    if (userProfile.targetCalories) {
+      const remainingCal = userProfile.targetCalories - consumedTotals.calories;
+      const remainingProtein = (userProfile.targetProtein || 0) - consumedTotals.protein;
+      const remainingCarbs = (userProfile.targetCarbs || 0) - consumedTotals.carbs;
+      const remainingFat = (userProfile.targetFat || 0) - consumedTotals.fat;
+      userContext += `REMAINING TODAY: ${remainingCal}cal, ${remainingProtein}gP, ${remainingCarbs}gC, ${remainingFat}gF\n`;
+      userContext += `Adjust this meal's targets to help hit remaining goals.\n`;
+    }
   }
 
-  // Build menu context
-  let menuContext = `\nAvailable Menu Items`;
+  // Group items by station for better organization
+  const byStation = new Map<string, MenuItem[]>();
+  for (const item of items) {
+    const station = item.station || "Other";
+    if (!byStation.has(station)) byStation.set(station, []);
+    byStation.get(station)!.push(item);
+  }
+
+  let menuContext = `\nMENU`;
   if (diningHall) menuContext += ` at ${diningHall}`;
-  if (mealPeriod) menuContext += ` for ${mealPeriod}`;
-  menuContext += `:\n\n`;
+  if (mealPeriod) menuContext += ` (${mealPeriod})`;
+  menuContext += `:\n`;
 
-  items.forEach((item, index) => {
-    menuContext += `${index + 1}. ${item.name}`;
-    if (item.station) {
-      menuContext += ` [Station: ${item.station}]`;
+  for (const [station, stationItems] of byStation) {
+    menuContext += `\n[${station}]\n`;
+    for (const item of stationItems) {
+      menuContext += `- ${formatItemCompact(item)}\n`;
     }
-    menuContext += ` (${item.diningHall} - ${item.mealPeriod})\n`;
+  }
 
-    if (item.calories || item.protein || item.carbs || item.fat) {
-      menuContext += `   Nutrition: `;
-      const nutrition = [];
-      if (item.calories) nutrition.push(`${item.calories} cal`);
-      if (item.protein) nutrition.push(`${item.protein}g protein`);
-      if (item.carbs) nutrition.push(`${item.carbs}g carbs`);
-      if (item.fat) nutrition.push(`${item.fat}g fat`);
-      menuContext += nutrition.join(", ") + "\n";
-    }
+  const prompt = `${userContext}
+${menuContext}
 
-    const tags = [];
-    if (item.isVegetarian) tags.push("Vegetarian");
-    if (item.isVegan) tags.push("Vegan");
-    if (item.isGlutenFree) tags.push("Gluten-Free");
-    if (item.isKosher) tags.push("Kosher");
-    if (tags.length > 0) {
-      menuContext += `   Tags: ${tags.join(", ")}\n`;
-    }
+TASK: Create 4 DIVERSE meal combinations from the menu above. Each meal should be a complete, balanced plate that gets the user roughly 1/3 of their daily macro targets.
 
-    if (item.ingredients) {
-      menuContext += `   Ingredients: ${item.ingredients}\n`;
-    }
+CRITICAL DIVERSITY RULES:
+- Each meal MUST be built around a DIFFERENT centerpiece protein or main dish (e.g. one with chicken/meat, one with fish, one with a grain bowl, one with eggs/tofu)
+- Each meal should feel like a different style of eating (e.g. a hearty protein plate, a lighter grain bowl, a salad-based meal, a comfort food option)
+- Do NOT repeat the same side items across all meals. Mix up your sides and accompaniments
+- Include vegetables/greens in every meal
+- Each meal should combine 3-6 items into a cohesive plate that someone would actually eat together
 
-    menuContext += "\n";
-  });
+MACRO RULES:
+- Each meal should aim for roughly the per-meal targets listed above
+- Prioritize protein-rich centerpieces (chicken, fish, beef, tofu, eggs)
+- Balance with carb sources (rice, pasta, bread, grains) and vegetables
+- Add a fat source if needed (nuts, avocado, dressing, cheese)
 
-  const prompt = `${userContext}\n${menuContext}
+You MUST respond using EXACTLY this format. No other text:
 
-Based on the user's profile and goals, recommend 3-5 specific meals from the available menu that would best support their nutrition goals. For each recommendation:
+RECOMMENDATION: <creative 3-5 word meal name>
+ITEMS: <comma-separated EXACT menu item names copied from the list>
+WHY: <2-3 sentences on macros and why this combination works>
 
-1. **Specify the exact station/area** to get each item from (shown in [Station: ...])
-2. Explain why it's a good choice for their goals
-3. Highlight the key nutritional benefits
-4. Suggest portion sizes or combinations if appropriate
-5. Note any considerations (e.g., "pairs well with...", "good pre/post workout option")
+RECOMMENDATION: <different style meal name>
+ITEMS: <different set of exact menu item names>
+WHY: <explanation>
 
-Be specific about which menu items to choose, **where to find them in the dining hall**, and provide practical, actionable advice. Focus on meals that align with their calorie and macro targets while respecting dietary restrictions.`;
+Rules:
+- Copy item names EXACTLY as they appear in the menu (spelling, capitalization, everything)
+- No markdown (no **, ##, or bullets)
+- Start immediately with the first RECOMMENDATION: line
+- No introductions, conclusions, or extra commentary`;
 
   return prompt;
 }
@@ -199,7 +247,7 @@ Be specific about which menu items to choose, **where to find them in the dining
 export async function POST(request: NextRequest) {
   try {
     const body: RecommendationRequest = await request.json();
-    const { userProfile, availableItems, diningHall, mealPeriod } = body;
+    const { userProfile, availableItems, diningHall, mealPeriod, consumedTotals } = body;
 
     if (!availableItems || availableItems.length === 0) {
       return NextResponse.json(
@@ -217,7 +265,8 @@ export async function POST(request: NextRequest) {
           userProfile,
           availableItems,
           diningHall,
-          mealPeriod
+          mealPeriod,
+          consumedTotals
         );
       } catch (error) {
         console.error("Claude API error:", error);
@@ -227,7 +276,8 @@ export async function POST(request: NextRequest) {
             userProfile,
             availableItems,
             diningHall,
-            mealPeriod
+            mealPeriod,
+            consumedTotals
           );
         } else {
           throw new Error("No LLM API keys available");
@@ -238,7 +288,8 @@ export async function POST(request: NextRequest) {
         userProfile,
         availableItems,
         diningHall,
-        mealPeriod
+        mealPeriod,
+        consumedTotals
       );
     } else {
       return NextResponse.json(
@@ -247,7 +298,66 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ recommendation });
+    // Parse structured RECOMMENDATION: / ITEMS: / WHY: format
+    const lines = recommendation.split('\n');
+    const textRecommendations: { title: string; description: string; items: string[] }[] = [];
+    let currentTitle = '';
+    let currentItems: string[] = [];
+    let currentWhy = '';
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+
+      const recMatch = trimmed.match(/^RECOMMENDATION:\s*(.+)$/i);
+      const itemsMatch = trimmed.match(/^ITEMS:\s*(.+)$/i);
+      const whyMatch = trimmed.match(/^WHY:\s*(.+)$/i);
+
+      if (recMatch) {
+        // Save previous recommendation if exists
+        if (currentTitle) {
+          textRecommendations.push({
+            title: currentTitle,
+            description: currentWhy,
+            items: currentItems,
+          });
+        }
+        currentTitle = recMatch[1].replace(/\*\*/g, '').trim();
+        currentItems = [];
+        currentWhy = '';
+      } else if (itemsMatch) {
+        currentItems = itemsMatch[1]
+          .split(',')
+          .map((s) => s.replace(/\*\*/g, '').trim())
+          .filter((s) => s.length > 0);
+      } else if (whyMatch) {
+        currentWhy = whyMatch[1].replace(/\*\*/g, '').trim();
+      } else if (currentTitle && currentWhy) {
+        // Continuation of WHY line
+        currentWhy += ' ' + trimmed.replace(/\*\*/g, '');
+      }
+    }
+
+    // Add last recommendation
+    if (currentTitle) {
+      textRecommendations.push({
+        title: currentTitle,
+        description: currentWhy,
+        items: currentItems,
+      });
+    }
+
+    if (textRecommendations.length > 0) {
+      return NextResponse.json({
+        recommendations: textRecommendations,
+        fullText: recommendation
+      });
+    }
+
+    // Fallback: return full text
+    return NextResponse.json({
+      fullText: recommendation
+    });
   } catch (error) {
     console.error("Recommendation error:", error);
     return NextResponse.json(

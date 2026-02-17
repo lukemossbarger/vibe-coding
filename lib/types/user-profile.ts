@@ -22,6 +22,7 @@ export interface UserProfile {
   targetProtein?: number;
   targetCarbs?: number;
   targetFat?: number;
+  targetSugar?: number;
 
   // Dietary restrictions
   isVegetarian?: boolean;
