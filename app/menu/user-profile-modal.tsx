@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   UserProfile,
   FitnessGoal,
@@ -10,20 +10,19 @@ import {
   calculateMacros,
 } from "@/lib/types/user-profile";
 
-interface UserProfileModalProps {
+interface UserProfileCardProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (profile: UserProfile) => void;
   initialProfile?: UserProfile;
 }
 
-export function UserProfileModal({
+export function UserProfileCard({
   isOpen,
   onClose,
   onSave,
   initialProfile,
-}: UserProfileModalProps) {
-  // Initialize all fields to prevent controlled/uncontrolled input errors
+}: UserProfileCardProps) {
   const [profile, setProfile] = useState<UserProfile>({
     activityLevel: "moderate",
     fitnessGoal: "maintain",
@@ -34,63 +33,68 @@ export function UserProfileModal({
     ...initialProfile,
   });
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    if (isOpen) {
+      setProfile({
+        activityLevel: "moderate",
+        fitnessGoal: "maintain",
+        age: undefined,
+        gender: undefined,
+        height: undefined,
+        weight: undefined,
+        ...initialProfile,
+      });
+    }
+  }, [isOpen, initialProfile]);
 
   const handleSave = () => {
-    // Auto-calculate macros if we have enough info
     if (profile.weight && profile.height && profile.age && profile.gender) {
       const tdee = calculateTDEE(profile);
       if (tdee && profile.fitnessGoal) {
-        const calories = tdee;
-        const macros = calculateMacros(calories, profile.fitnessGoal, profile.weight);
-
-        const updatedProfile = {
+        const macros = calculateMacros(tdee, profile.fitnessGoal, profile.weight);
+        onSave({
           ...profile,
-          targetCalories: calories,
+          targetCalories: tdee,
           targetProtein: macros.protein,
           targetCarbs: macros.carbs,
           targetFat: macros.fat,
-        };
-
-        onSave(updatedProfile);
-        onClose();
+        });
         return;
       }
     }
-
     onSave(profile);
-    onClose();
   };
 
+  if (!isOpen) return null;
+
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4 overflow-y-auto">
-      <div className="bg-gradient-to-br from-white via-purple-50/30 to-blue-50/30 rounded-3xl max-w-2xl w-full my-8 flex flex-col max-h-[calc(100vh-4rem)] shadow-2xl border-2 border-purple-200">
-        {/* Fixed Header */}
-        <div className="flex items-center justify-between p-6 border-b-2 border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50 rounded-t-3xl flex-shrink-0">
-          <h2 className="text-3xl font-black bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">Your Profile</h2>
+    <div className="fixed top-24 right-4 w-[300px] z-40">
+      <div className="bg-gradient-to-b from-white via-purple-50/30 to-blue-50/30 rounded-2xl border-2 border-purple-200 shadow-lg overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50">
+          <h2 className="text-lg font-black bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+            Your Profile
+          </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg hover:bg-gray-100"
           >
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
-        {/* Scrollable Content */}
-        <div className="p-6 space-y-6 overflow-y-auto flex-1">
-
+        {/* Content */}
+        <div className="p-4 space-y-4">
           {/* Physical Attributes */}
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">
+            <h3 className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wider">
               Physical Attributes
             </h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Age
-                </label>
+                <label className="block text-xs font-medium text-gray-600 mb-0.5">Age</label>
                 <input
                   type="number"
                   value={profile.age ?? ""}
@@ -98,21 +102,19 @@ export function UserProfileModal({
                     const val = e.target.value;
                     setProfile({ ...profile, age: val ? parseInt(val) : undefined });
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  className="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   placeholder="25"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Gender
-                </label>
+                <label className="block text-xs font-medium text-gray-600 mb-0.5">Gender</label>
                 <select
                   value={profile.gender ?? ""}
                   onChange={(e) => {
                     const val = e.target.value;
                     setProfile({ ...profile, gender: val ? (val as Gender) : undefined });
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  className="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 >
                   <option value="">Select...</option>
                   <option value="male">Male</option>
@@ -121,9 +123,7 @@ export function UserProfileModal({
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Height (inches)
-                </label>
+                <label className="block text-xs font-medium text-gray-600 mb-0.5">Height (in)</label>
                 <input
                   type="number"
                   value={profile.height ?? ""}
@@ -131,14 +131,12 @@ export function UserProfileModal({
                     const val = e.target.value;
                     setProfile({ ...profile, height: val ? parseInt(val) : undefined });
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  className="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   placeholder="70"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Weight (lbs)
-                </label>
+                <label className="block text-xs font-medium text-gray-600 mb-0.5">Weight (lbs)</label>
                 <input
                   type="number"
                   value={profile.weight ?? ""}
@@ -146,7 +144,7 @@ export function UserProfileModal({
                     const val = e.target.value;
                     setProfile({ ...profile, weight: val ? parseInt(val) : undefined });
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  className="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   placeholder="180"
                 />
               </div>
@@ -155,36 +153,32 @@ export function UserProfileModal({
 
           {/* Goals */}
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">Goals</h3>
-            <div className="grid grid-cols-2 gap-4">
+            <h3 className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wider">Goals</h3>
+            <div className="space-y-2">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Activity Level
-                </label>
+                <label className="block text-xs font-medium text-gray-600 mb-0.5">Activity Level</label>
                 <select
                   value={profile.activityLevel || "moderate"}
                   onChange={(e) =>
                     setProfile({ ...profile, activityLevel: e.target.value as ActivityLevel })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  className="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 >
-                  <option value="sedentary">Sedentary (little/no exercise)</option>
-                  <option value="light">Light (1-3 days/week)</option>
-                  <option value="moderate">Moderate (3-5 days/week)</option>
-                  <option value="active">Active (6-7 days/week)</option>
+                  <option value="sedentary">Sedentary</option>
+                  <option value="light">Light (1-3 days/wk)</option>
+                  <option value="moderate">Moderate (3-5 days/wk)</option>
+                  <option value="active">Active (6-7 days/wk)</option>
                   <option value="very_active">Very Active (2x/day)</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Fitness Goal
-                </label>
+                <label className="block text-xs font-medium text-gray-600 mb-0.5">Fitness Goal</label>
                 <select
                   value={profile.fitnessGoal || "maintain"}
                   onChange={(e) =>
                     setProfile({ ...profile, fitnessGoal: e.target.value as FitnessGoal })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  className="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 >
                   <option value="lose_weight">Lose Weight</option>
                   <option value="maintain">Maintain Weight</option>
@@ -197,10 +191,10 @@ export function UserProfileModal({
 
           {/* Dietary Restrictions */}
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">
+            <h3 className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wider">
               Dietary Restrictions
             </h3>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-x-2 gap-y-1">
               {[
                 { key: "isVegetarian", label: "Vegetarian" },
                 { key: "isVegan", label: "Vegan" },
@@ -209,39 +203,61 @@ export function UserProfileModal({
                 { key: "isDairyFree", label: "Dairy-Free" },
                 { key: "isNutFree", label: "Nut-Free" },
               ].map(({ key, label }) => (
-                <label key={key} className="flex items-center gap-2 cursor-pointer">
+                <label key={key} className="flex items-center gap-1.5 cursor-pointer py-0.5">
                   <input
                     type="checkbox"
                     checked={(profile[key as keyof UserProfile] as boolean) || false}
                     onChange={(e) =>
                       setProfile({ ...profile, [key]: e.target.checked })
                     }
-                    className="w-4 h-4 text-purple-600 border-gray-300 rounded"
+                    className="w-3.5 h-3.5 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
                   />
-                  <span className="text-sm text-gray-700">{label}</span>
+                  <span className="text-xs text-gray-700">{label}</span>
                 </label>
               ))}
             </div>
           </div>
 
+          {/* Daily Targets */}
+          {profile.targetCalories && (
+            <div>
+              <h3 className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wider">
+                Daily Targets
+              </h3>
+              <div className="grid grid-cols-2 gap-1.5">
+                <div className="bg-purple-50 rounded-lg px-2 py-1.5 text-center">
+                  <div className="text-base font-bold text-purple-700">{profile.targetCalories}</div>
+                  <div className="text-[10px] text-purple-600">Calories</div>
+                </div>
+                <div className="bg-blue-50 rounded-lg px-2 py-1.5 text-center">
+                  <div className="text-base font-bold text-blue-700">{profile.targetProtein}g</div>
+                  <div className="text-[10px] text-blue-600">Protein</div>
+                </div>
+                <div className="bg-green-50 rounded-lg px-2 py-1.5 text-center">
+                  <div className="text-base font-bold text-green-700">{profile.targetCarbs}g</div>
+                  <div className="text-[10px] text-green-600">Carbs</div>
+                </div>
+                <div className="bg-orange-50 rounded-lg px-2 py-1.5 text-center">
+                  <div className="text-base font-bold text-orange-700">{profile.targetFat}g</div>
+                  <div className="text-[10px] text-orange-600">Fat</div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Fixed Footer with Action Buttons */}
-        <div className="flex gap-3 p-6 border-t-2 border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50 rounded-b-3xl flex-shrink-0">
+        {/* Save Button */}
+        <div className="px-4 pb-4">
           <button
             onClick={handleSave}
-            className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 via-purple-700 to-blue-600 text-white rounded-2xl font-bold hover:from-purple-700 hover:via-purple-800 hover:to-blue-700 transition-all shadow-lg hover:shadow-xl hover:scale-105"
+            className="w-full px-4 py-2.5 bg-gradient-to-r from-purple-600 via-purple-700 to-blue-600 text-white rounded-xl font-bold text-sm hover:from-purple-700 hover:via-purple-800 hover:to-blue-700 transition-all shadow-md hover:shadow-lg"
           >
-            💾 Save Profile
-          </button>
-          <button
-            onClick={onClose}
-            className="px-6 py-3 bg-gradient-to-r from-gray-200 to-gray-300 text-gray-800 rounded-2xl font-bold hover:from-gray-300 hover:to-gray-400 transition-all shadow-md hover:shadow-lg"
-          >
-            Cancel
+            Save Profile
           </button>
         </div>
       </div>
     </div>
   );
 }
+
+export { UserProfileCard as UserProfileModal };

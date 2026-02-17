@@ -130,12 +130,13 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
       // Filter by date (only show items for selected date)
+      // Parse selectedDate as local date components to avoid UTC timezone shift
+      const [selYear, selMonth, selDay] = selectedDate.split("-").map(Number);
       const itemDate = new Date(item.date);
-      const selectedDateOnly = new Date(selectedDate);
       if (
-        itemDate.getFullYear() !== selectedDateOnly.getFullYear() ||
-        itemDate.getMonth() !== selectedDateOnly.getMonth() ||
-        itemDate.getDate() !== selectedDateOnly.getDate()
+        itemDate.getFullYear() !== selYear ||
+        itemDate.getMonth() !== selMonth - 1 ||
+        itemDate.getDate() !== selDay
       ) {
         return false;
       }
@@ -199,6 +200,7 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
   };
 
   return (
+    <>
     <div className="space-y-8">
       {/* Compact Sticky Filter Bar */}
       <div className="sticky top-0 z-30 bg-gradient-to-r from-white via-purple-50/50 to-blue-50/50 backdrop-blur-lg border-b border-purple-100 shadow-lg">
@@ -234,7 +236,7 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
               className="flex-1 min-w-[200px] px-4 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             />
             <button
-              onClick={() => setShowProfileModal(true)}
+              onClick={() => setShowProfileModal(!showProfileModal)}
               className="px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-medium hover:from-purple-700 hover:to-purple-800 transition-all shadow-sm hover:shadow-md flex items-center gap-2"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -511,13 +513,15 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
         <TodaysMealsTab userProfile={userProfile} />
       )}
 
-      {/* User Profile Modal */}
-      <UserProfileModal
-        isOpen={showProfileModal}
-        onClose={() => setShowProfileModal(false)}
-        onSave={handleSaveProfile}
-        initialProfile={userProfile}
-      />
     </div>
+
+    {/* Profile Card */}
+    <UserProfileModal
+      isOpen={showProfileModal}
+      onClose={() => setShowProfileModal(false)}
+      onSave={handleSaveProfile}
+      initialProfile={userProfile}
+    />
+    </>
   );
 }
