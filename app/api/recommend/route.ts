@@ -36,6 +36,8 @@ interface RecommendationRequest {
   diningHall?: string;
   mealPeriod?: string;
   consumedTotals?: ConsumedTotals;
+  likes?: string[];
+  dislikes?: string[];
 }
 
 async function getRecommendationFromClaude(
@@ -43,13 +45,15 @@ async function getRecommendationFromClaude(
   items: MenuItem[],
   diningHall?: string,
   mealPeriod?: string,
-  consumedTotals?: ConsumedTotals
+  consumedTotals?: ConsumedTotals,
+  likes?: string[],
+  dislikes?: string[]
 ): Promise<string> {
   const anthropic = new Anthropic({
     apiKey: process.env.ANTHROPIC_API_KEY,
   });
 
-  const prompt = buildPrompt(userProfile, items, diningHall, mealPeriod, consumedTotals);
+  const prompt = buildPrompt(userProfile, items, diningHall, mealPeriod, consumedTotals, likes, dislikes);
 
   const message = await anthropic.messages.create({
     model: "claude-sonnet-4-5-20250929",
@@ -75,13 +79,15 @@ async function getRecommendationFromOpenAI(
   items: MenuItem[],
   diningHall?: string,
   mealPeriod?: string,
-  consumedTotals?: ConsumedTotals
+  consumedTotals?: ConsumedTotals,
+  likes?: string[],
+  dislikes?: string[]
 ): Promise<string> {
   const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
   });
 
-  const prompt = buildPrompt(userProfile, items, diningHall, mealPeriod, consumedTotals);
+  const prompt = buildPrompt(userProfile, items, diningHall, mealPeriod, consumedTotals, likes, dislikes);
 
   const completion = await openai.chat.completions.create({
     model: "gpt-4o",
@@ -126,7 +132,9 @@ function buildPrompt(
   items: MenuItem[],
   diningHall?: string,
   mealPeriod?: string,
-  consumedTotals?: ConsumedTotals
+  consumedTotals?: ConsumedTotals,
+  likes?: string[],
+  dislikes?: string[]
 ): string {
   // Calculate per-meal targets (assume 3 meals per day)
   const mealCalTarget = userProfile.targetCalories ? Math.round(userProfile.targetCalories / 3) : null;
@@ -171,6 +179,41 @@ function buildPrompt(
 
   if (restrictions.length > 0) {
     userContext += `Dietary Restrictions: ${restrictions.join(", ")}\n`;
+  }
+
+  // Food preferences (likes/dislikes)
+  if ((likes && likes.length > 0) || (dislikes && dislikes.length > 0)) {
+    const itemNames = new Set(items.map((i) => i.name.toLowerCase()));
+
+    userContext += `\nFOOD PREFERENCES:\n`;
+
+    if (likes && likes.length > 0) {
+      const exactLikes = likes.filter((l) => itemNames.has(l.toLowerCase()));
+      const generalLikes = likes.filter((l) => !itemNames.has(l.toLowerCase()));
+
+      if (exactLikes.length > 0) {
+        userContext += `Liked specific dishes: ${exactLikes.join(", ")}\n`;
+        userContext += `  (These are exact menu items the user enjoys. Favor including them.)\n`;
+      }
+      if (generalLikes.length > 0) {
+        userContext += `Generally likes: ${generalLikes.join(", ")}\n`;
+        userContext += `  (These are ingredients/foods the user enjoys. Favor any menu item containing these.)\n`;
+      }
+    }
+
+    if (dislikes && dislikes.length > 0) {
+      const exactDislikes = dislikes.filter((d) => itemNames.has(d.toLowerCase()));
+      const generalDislikes = dislikes.filter((d) => !itemNames.has(d.toLowerCase()));
+
+      if (exactDislikes.length > 0) {
+        userContext += `Disliked specific dishes: ${exactDislikes.join(", ")}\n`;
+        userContext += `  (These are exact menu items the user dislikes. Do NOT include these specific items, but other dishes with similar ingredients are fine.)\n`;
+      }
+      if (generalDislikes.length > 0) {
+        userContext += `Generally dislikes: ${generalDislikes.join(", ")}\n`;
+        userContext += `  (These are ingredients/foods the user dislikes. AVOID any menu item that likely contains these ingredients.)\n`;
+      }
+    }
   }
 
   // Add consumed totals context
@@ -225,6 +268,12 @@ MACRO RULES:
 - Balance with carb sources (rice, pasta, bread, grains) and vegetables
 - Add a fat source if needed (nuts, avocado, dressing, cheese)
 
+PREFERENCE RULES:
+- If the user has listed generally disliked ingredients (e.g. "Chicken"), NEVER include any menu item that contains that ingredient
+- If the user has disliked a specific dish (e.g. "BBQ Chicken Quarter"), do NOT include that exact dish but other chicken dishes are fine
+- If the user has listed generally liked ingredients, prioritize menu items containing those ingredients
+- If the user has liked specific dishes, try to include those dishes when they fit the macro targets
+
 You MUST respond using EXACTLY this format. No other text:
 
 RECOMMENDATION: <creative 3-5 word meal name>
@@ -247,7 +296,7 @@ Rules:
 export async function POST(request: NextRequest) {
   try {
     const body: RecommendationRequest = await request.json();
-    const { userProfile, availableItems, diningHall, mealPeriod, consumedTotals } = body;
+    const { userProfile, availableItems, diningHall, mealPeriod, consumedTotals, likes, dislikes } = body;
 
     if (!availableItems || availableItems.length === 0) {
       return NextResponse.json(
@@ -266,7 +315,9 @@ export async function POST(request: NextRequest) {
           availableItems,
           diningHall,
           mealPeriod,
-          consumedTotals
+          consumedTotals,
+          likes,
+          dislikes
         );
       } catch (error) {
         console.error("Claude API error:", error);
@@ -277,7 +328,9 @@ export async function POST(request: NextRequest) {
             availableItems,
             diningHall,
             mealPeriod,
-            consumedTotals
+            consumedTotals,
+            likes,
+            dislikes
           );
         } else {
           throw new Error("No LLM API keys available");
@@ -289,7 +342,9 @@ export async function POST(request: NextRequest) {
         availableItems,
         diningHall,
         mealPeriod,
-        consumedTotals
+        consumedTotals,
+        likes,
+        dislikes
       );
     } else {
       return NextResponse.json(

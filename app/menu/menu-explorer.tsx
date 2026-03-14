@@ -4,7 +4,6 @@ import { useState, useMemo, useEffect } from "react";
 import {
   DINING_HALL_SCHEDULES,
   getCurrentMealPeriod,
-  isDiningHallOpen,
   formatMealTime,
   type MealPeriod,
 } from "@/lib/dining-halls/schedule";
@@ -47,14 +46,8 @@ type MenuExplorerProps = {
 };
 
 export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
-  // Initialize with current date and time
-  const now = new Date();
-  const [selectedDate, setSelectedDate] = useState<string>(
-    now.toISOString().split("T")[0]
-  );
-  const [selectedTime, setSelectedTime] = useState<string>(
-    `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`
-  );
+  const [selectedDate, setSelectedDate] = useState<string>("");
+  const [selectedTime, setSelectedTime] = useState<string>("");
   const [selectedHall, setSelectedHall] = useState<string>("all");
   const [selectedMeal, setSelectedMeal] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
@@ -77,13 +70,20 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
   // User profile state with backend persistence
   const [userProfile, setUserProfile] = useState<UserProfile>({});
   const [showProfileModal, setShowProfileModal] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const [profileLoading, setProfileLoading] = useState(true);
 
-  // Load profile from backend after component mounts
+  // Food preferences (likes/dislikes)
+  const [likes, setLikes] = useState<string[]>([]);
+  const [dislikes, setDislikes] = useState<string[]>([]);
+
+  // Load profile and preferences from backend after component mounts
   useEffect(() => {
-    setMounted(true);
+    const now = new Date();
+    setSelectedDate(now.toISOString().split("T")[0]);
+    setSelectedTime(
+      `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`
+    );
     fetchProfile();
+    fetchFoodPreferences();
   }, []);
 
   const fetchProfile = async () => {
@@ -98,7 +98,61 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
     } catch (error) {
       console.error('Failed to fetch profile:', error);
     } finally {
-      setProfileLoading(false);
+    }
+  };
+
+  const fetchFoodPreferences = async () => {
+    try {
+      const response = await fetch('/api/food-preferences');
+      if (response.ok) {
+        const data = await response.json();
+        setLikes(data.likes || []);
+        setDislikes(data.dislikes || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch food preferences:', error);
+    }
+  };
+
+  const handleAddPreference = async (name: string, type: "like" | "dislike") => {
+    // Optimistic update
+    if (type === "like") {
+      setLikes((prev) => [...prev, name]);
+      setDislikes((prev) => prev.filter((d) => d !== name));
+    } else {
+      setDislikes((prev) => [...prev, name]);
+      setLikes((prev) => prev.filter((l) => l !== name));
+    }
+
+    try {
+      await fetch('/api/food-preferences', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, type }),
+      });
+    } catch (error) {
+      console.error('Failed to save food preference:', error);
+      fetchFoodPreferences(); // Revert on failure
+    }
+  };
+
+  const handleRemovePreference = async (name: string, type: "like" | "dislike") => {
+    // Optimistic update
+    if (type === "like") {
+      setLikes((prev) => prev.filter((l) => l !== name));
+    } else {
+      setDislikes((prev) => prev.filter((d) => d !== name));
+    }
+
+    try {
+      await fetch('/api/food-preferences', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, type }),
+      });
+    } catch (error) {
+      console.error('Failed to delete food preference:', error);
+      fetchFoodPreferences(); // Revert on failure
     }
   };
 
@@ -129,15 +183,9 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
 
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
-      // Filter by date (only show items for selected date)
-      // Parse selectedDate as local date components to avoid UTC timezone shift
-      const [selYear, selMonth, selDay] = selectedDate.split("-").map(Number);
-      const itemDate = new Date(item.date);
-      if (
-        itemDate.getFullYear() !== selYear ||
-        itemDate.getMonth() !== selMonth - 1 ||
-        itemDate.getDate() !== selDay
-      ) {
+      // Filter by date — compare UTC date strings to avoid timezone shift
+      const itemDateStr = new Date(item.date).toISOString().split("T")[0];
+      if (itemDateStr !== selectedDate) {
         return false;
       }
 
@@ -438,38 +486,82 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
                           </div>
                         )}
 
-                        {/* Dietary Tags */}
-                        <div className="flex flex-wrap gap-2">
-                          {item.isVegetarian && (
-                            <span className="px-3 py-1.5 bg-gradient-to-r from-green-200 via-emerald-200 to-teal-200 text-green-800 text-xs rounded-full font-bold shadow-md border-2 border-green-300">
-                              🌱 Vegetarian
-                            </span>
-                          )}
-                          {item.isVegan && (
-                            <span className="px-3 py-1.5 bg-gradient-to-r from-lime-200 via-green-200 to-emerald-200 text-green-800 text-xs rounded-full font-bold shadow-md border-2 border-green-300">
-                              🥬 Vegan
-                            </span>
-                          )}
-                          {item.isGlutenFree && (
-                            <span className="px-3 py-1.5 bg-gradient-to-r from-blue-200 via-cyan-200 to-sky-200 text-blue-800 text-xs rounded-full font-bold shadow-md border-2 border-blue-300">
-                              🌾 GF
-                            </span>
-                          )}
-                          {item.isKosher && (
-                            <span className="px-3 py-1.5 bg-gradient-to-r from-purple-200 via-violet-200 to-indigo-200 text-purple-800 text-xs rounded-full font-bold shadow-md border-2 border-purple-300">
-                              ✡️ Kosher
-                            </span>
-                          )}
-                          {item.isDairyFree && (
-                            <span className="px-3 py-1.5 bg-gradient-to-r from-yellow-200 via-amber-200 to-orange-200 text-yellow-800 text-xs rounded-full font-bold shadow-md border-2 border-yellow-300">
-                              🥛 DF
-                            </span>
-                          )}
-                          {item.isNutFree && (
-                            <span className="px-3 py-1.5 bg-gradient-to-r from-orange-200 via-red-200 to-rose-200 text-orange-800 text-xs rounded-full font-bold shadow-md border-2 border-orange-300">
-                              🥜 NF
-                            </span>
-                          )}
+                        {/* Dietary Tags + Like/Dislike */}
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex flex-wrap gap-1.5 flex-1">
+                            {item.isVegetarian && (
+                              <span className="px-3 py-1.5 bg-gradient-to-r from-green-200 via-emerald-200 to-teal-200 text-green-800 text-xs rounded-full font-bold shadow-md border-2 border-green-300">
+                                🌱 Vegetarian
+                              </span>
+                            )}
+                            {item.isVegan && (
+                              <span className="px-3 py-1.5 bg-gradient-to-r from-lime-200 via-green-200 to-emerald-200 text-green-800 text-xs rounded-full font-bold shadow-md border-2 border-green-300">
+                                🥬 Vegan
+                              </span>
+                            )}
+                            {item.isGlutenFree && (
+                              <span className="px-3 py-1.5 bg-gradient-to-r from-blue-200 via-cyan-200 to-sky-200 text-blue-800 text-xs rounded-full font-bold shadow-md border-2 border-blue-300">
+                                🌾 GF
+                              </span>
+                            )}
+                            {item.isKosher && (
+                              <span className="px-3 py-1.5 bg-gradient-to-r from-purple-200 via-violet-200 to-indigo-200 text-purple-800 text-xs rounded-full font-bold shadow-md border-2 border-purple-300">
+                                ✡️ Kosher
+                              </span>
+                            )}
+                            {item.isDairyFree && (
+                              <span className="px-3 py-1.5 bg-gradient-to-r from-yellow-200 via-amber-200 to-orange-200 text-yellow-800 text-xs rounded-full font-bold shadow-md border-2 border-yellow-300">
+                                🥛 DF
+                              </span>
+                            )}
+                            {item.isNutFree && (
+                              <span className="px-3 py-1.5 bg-gradient-to-r from-orange-200 via-red-200 to-rose-200 text-orange-800 text-xs rounded-full font-bold shadow-md border-2 border-orange-300">
+                                🥜 NF
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex gap-1 flex-shrink-0">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (likes.includes(item.name)) {
+                                  handleRemovePreference(item.name, "like");
+                                } else {
+                                  handleAddPreference(item.name, "like");
+                                }
+                              }}
+                              className={`p-1.5 rounded-lg transition-all ${
+                                likes.includes(item.name)
+                                  ? "bg-green-100 text-green-600 border border-green-300"
+                                  : "text-gray-400 hover:text-green-500 hover:bg-green-50 border border-transparent"
+                              }`}
+                              title={likes.includes(item.name) ? "Remove from likes" : "Add to likes"}
+                            >
+                              <svg className="w-4 h-4" fill={likes.includes(item.name) ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (dislikes.includes(item.name)) {
+                                  handleRemovePreference(item.name, "dislike");
+                                } else {
+                                  handleAddPreference(item.name, "dislike");
+                                }
+                              }}
+                              className={`p-1.5 rounded-lg transition-all ${
+                                dislikes.includes(item.name)
+                                  ? "bg-red-100 text-red-600 border border-red-300"
+                                  : "text-gray-400 hover:text-red-500 hover:bg-red-50 border border-transparent"
+                              }`}
+                              title={dislikes.includes(item.name) ? "Remove from dislikes" : "Add to dislikes"}
+                            >
+                              <svg className="w-4 h-4" fill={dislikes.includes(item.name) ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018c.163 0 .326.02.485.06L17 4m-7 10v2a2 2 0 002 2h.095c.5 0 .905-.405.905-.905 0-.714.211-1.412.608-2.006L17 13V4m-7 10h2m5-6h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5" />
+                              </svg>
+                            </button>
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -505,6 +597,8 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
           diningHall={selectedHall !== "all" ? selectedHall : undefined}
           mealPeriod={selectedMeal !== "all" ? selectedMeal : undefined}
           consumedTotals={consumedTotals}
+          likes={likes}
+          dislikes={dislikes}
         />
       )}
 
@@ -521,6 +615,10 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
       onClose={() => setShowProfileModal(false)}
       onSave={handleSaveProfile}
       initialProfile={userProfile}
+      likes={likes}
+      dislikes={dislikes}
+      onAddPreference={handleAddPreference}
+      onRemovePreference={handleRemovePreference}
     />
     </>
   );

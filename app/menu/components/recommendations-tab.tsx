@@ -107,6 +107,8 @@ interface RecommendationsTabProps {
   diningHall?: string;
   mealPeriod?: string;
   consumedTotals: NutritionTotals;
+  likes?: string[];
+  dislikes?: string[];
 }
 
 export function RecommendationsTab({
@@ -115,6 +117,8 @@ export function RecommendationsTab({
   diningHall,
   mealPeriod,
   consumedTotals,
+  likes,
+  dislikes,
 }: RecommendationsTabProps) {
   const [recommendations, setRecommendations] = useState<ResolvedRecommendation[]>([]);
   const [fullText, setFullText] = useState("");
@@ -171,6 +175,8 @@ export function RecommendationsTab({
           diningHall,
           mealPeriod,
           consumedTotals,
+          likes,
+          dislikes,
         }),
       });
 

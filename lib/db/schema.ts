@@ -181,3 +181,20 @@ export const trackedMeals = pgTable("tracked_meals", {
   userDateIdx: index("tracked_meals_user_date_idx").on(table.userId, table.date),
   dateIdx: index("tracked_meals_date_idx").on(table.date),
 }));
+
+// ============================================
+// Food Preferences (likes / dislikes)
+// ============================================
+
+export const foodPreferences = pgTable("food_preferences", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+
+  name: varchar("name", { length: 255 }).notNull(), // e.g. "Chicken", "Grilled Salmon"
+  type: varchar("type", { length: 10 }).notNull(), // "like" | "dislike"
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdx: index("food_prefs_user_idx").on(table.userId),
+  uniquePref: index("food_prefs_unique_idx").on(table.userId, table.name, table.type),
+}));
