@@ -78,7 +78,8 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
   // Load profile and preferences from backend after component mounts
   useEffect(() => {
     const now = new Date();
-    setSelectedDate(now.toISOString().split("T")[0]);
+    const localDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    setSelectedDate(localDate);
     setSelectedTime(
       `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`
     );
@@ -183,8 +184,9 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
 
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
-      // Filter by date — compare UTC date strings to avoid timezone shift
-      const itemDateStr = new Date(item.date).toISOString().split("T")[0];
+      // Filter by date — use local date components to match how items are stored (local midnight)
+      const d = new Date(item.date);
+      const itemDateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
       if (itemDateStr !== selectedDate) {
         return false;
       }
