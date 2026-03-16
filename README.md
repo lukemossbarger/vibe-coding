@@ -1,35 +1,36 @@
 # Northwestern Dining Hall Meal Finder
 
-A web application that helps Northwestern students find the perfect meal at dining halls based on their nutrition goals and dietary preferences.
+A full-stack web app that helps Northwestern students find and track meals at dining halls based on their nutrition goals and dietary preferences.
 
 ## Features
 
-- 🍽️ **Smart Meal Recommendations**: Input your nutrition goals and get personalized meal suggestions
-- 📊 **Nutrition Tracking**: Track calories, protein, carbs, and other macros
-- 🌱 **Dietary Filters**: Filter by vegetarian, vegan, gluten-free, kosher, and more
-- 🏫 **All Dining Halls**: Covers Allison, Elder, Sargent, Plex East, and Plex West
-- 🤖 **AI-Powered**: Uses LLM to understand your preferences and suggest optimal meals
+- **AI-Powered Recommendations**: Claude (Anthropic) generates personalized meal suggestions based on your fitness goals, macro targets, dietary restrictions, and food preferences
+- **Live Menu Data**: Scrapes Northwestern's dining menus daily via DineOnCampus + ZenRows
+- **Meal Tracking**: Log meals and track daily macros (calories, protein, carbs, fat) against your targets
+- **Dietary Filters**: Vegetarian, vegan, gluten-free, kosher, dairy-free, nut-free
+- **All Dining Halls**: Covers Allison, Elder, Sargent, Plex East, and Plex West
+- **User Profiles**: Fitness goals, macro targets, and food preferences saved per account
+- **Dark Mode**: System-aware dark/light mode toggle
 
 ## Tech Stack
 
-- **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS
-- **Backend**: Vercel Serverless Functions
-- **Database**: Supabase (PostgreSQL) with Drizzle ORM
-- **Web Scraping**: Cheerio + Axios
-- **LLM**: OpenAI API (GPT-4)
-- **State Management**: TanStack Query, Zustand
-- **Forms**: React Hook Form + Zod
-
-See [stacks.md](./stacks.md) for full tech stack details.
+- **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS 4
+- **Auth**: NextAuth 5 (Google OAuth) with JWT sessions
+- **Database**: Supabase (PostgreSQL) + Drizzle ORM
+- **AI**: Anthropic SDK (Claude Sonnet)
+- **Web Scraping**: ZenRows + Cheerio + Axios
+- **State Management**: Zustand (client), TanStack Query (server)
+- **Validation**: Zod, React Hook Form
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 18+ (currently using v25.6.1)
-- npm or yarn
+- Node.js 18+
 - A Supabase account
-- An OpenAI API key
+- Anthropic API key
+- Google OAuth credentials
+- ZenRows API key
 
 ### Installation
 
@@ -49,11 +50,14 @@ See [stacks.md](./stacks.md) for full tech stack details.
    cp .env.example .env
    ```
 
-   Then fill in your credentials:
-   - `DATABASE_URL`: Your Supabase PostgreSQL connection string
-   - `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anon key
-   - `OPENAI_API_KEY`: Your OpenAI API key
+   Fill in your credentials:
+   - `DATABASE_URL` — Supabase PostgreSQL connection string
+   - `NEXT_PUBLIC_SUPABASE_URL` — Supabase project URL
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` — Supabase anon key
+   - `ANTHROPIC_API_KEY` — Claude API key
+   - `GOOGLE_CLIENT_ID` — Google OAuth client ID
+   - `GOOGLE_CLIENT_SECRET` — Google OAuth client secret
+   - `ZENROWS_API_KEY` — ZenRows scraping API key
 
 4. **Set up the database**
    ```bash
@@ -71,107 +75,54 @@ See [stacks.md](./stacks.md) for full tech stack details.
 
 ```
 vibe-coding/
-├── app/                    # Next.js app directory
-│   ├── layout.tsx         # Root layout
-│   ├── page.tsx           # Home page
-│   └── globals.css        # Global styles
+├── app/                        # Next.js app directory
+│   ├── layout.tsx              # Root layout
+│   ├── page.tsx                # Landing page
+│   ├── menu/                   # Main menu explorer page
+│   ├── auth/signin/            # Google sign-in page
+│   └── api/
+│       ├── auth/               # NextAuth handlers
+│       ├── meals/              # Meal tracking endpoints
+│       ├── profile/            # User profile endpoints
+│       ├── food-preferences/   # Food likes/dislikes
+│       └── recommend/          # AI recommendation endpoint
+├── components/                 # React components
 ├── lib/
-│   ├── db/                # Database layer
-│   │   ├── schema.ts      # Drizzle schema definitions
-│   │   ├── client.ts      # Database client
-│   │   └── types.ts       # TypeScript types
-│   └── scraper/           # Web scraping logic
-│       ├── dineoncampus.ts    # Main scraper
-│       └── save-to-db.ts      # Database utilities
-├── scripts/
-│   └── test-scraper.ts    # Test scraper functionality
-└── stacks.md             # Tech stack documentation
+│   ├── db/                     # Drizzle schema, client, types
+│   ├── scraper/                # DineOnCampus scraper
+│   ├── stores/                 # Zustand stores
+│   ├── types/                  # Shared TypeScript types
+│   ├── utils/                  # Macro calculator, etc.
+│   └── dining-halls/           # Dining hall schedule logic
+├── auth.ts                     # NextAuth configuration
+├── middleware.ts               # Route protection
+└── drizzle.config.ts          # Drizzle config
 ```
 
 ## Database Schema
 
-### Menu Items Table
-Stores scraped menu items with nutrition and dietary information:
-- Basic info: name, dining hall, meal period, date
-- Nutrition: calories, protein, carbs, fat, fiber, sugar, sodium
-- Dietary tags: vegetarian, vegan, gluten-free, kosher, dairy-free, nut-free
-- Additional: serving size, ingredients, allergens
-
-### User Preferences Table
-Stores user preferences (local, no auth for now):
-- Physical attributes: height, weight, gender
-- Nutrition goals: target calories, protein, carbs, fat
-- Dietary restrictions: same tags as menu items
-- Preferences: preferred dining halls, disliked ingredients
-
-## Web Scraper
-
-The scraper fetches menu data from Northwestern's dineoncampus.com.
-
-### Test the Scraper
-
-```bash
-npx tsx scripts/test-scraper.ts
-```
-
-**Note**: The scraper selectors are placeholders and need to be updated based on the actual HTML structure of dineoncampus.com. You'll need to:
-
-1. Visit https://northwestern.campusdining.com
-2. Inspect the HTML structure using browser DevTools
-3. Update the CSS selectors in `lib/scraper/dineoncampus.ts`
-4. Test again
-
-If the site uses JavaScript rendering, you may need to switch from Cheerio to Playwright.
+- **menuItems** — Scraped dining menu catalog (name, hall, date, nutrition, dietary tags)
+- **userProfiles** — Fitness goals, macro targets, dietary restrictions per user
+- **trackedMeals** — User meal history with denormalized nutrition data
+- **foodPreferences** — Per-user food likes/dislikes for recommendation tuning
+- NextAuth tables (users, accounts, sessions, verificationTokens)
 
 ## Development Scripts
 
-- `npm run dev` - Start development server with Turbopack
-- `npm run build` - Build for production
-- `npm run start` - Start production server
-- `npm run lint` - Run ESLint
-- `npm run test` - Run Vitest unit tests
-- `npm run test:e2e` - Run Playwright E2E tests
-- `npm run db:generate` - Generate database migrations
-- `npm run db:migrate` - Run database migrations
-- `npm run db:push` - Push schema changes to database
-- `npm run db:studio` - Open Drizzle Studio (database GUI)
-
-## Next Steps
-
-### Week 1: Data Collection ✓
-- [x] Set up project structure
-- [x] Create database schema
-- [x] Build web scraper framework
-- [ ] Finalize scraper selectors
-- [ ] Test scraping all dining halls
-
-### Week 2: LLM Integration
-- [ ] Set up OpenAI API integration
-- [ ] Design prompt for meal recommendations
-- [ ] Build API endpoint for meal suggestions
-- [ ] Test with sample user inputs
-
-### Week 3: Caching & Data
-- [ ] Set up automated scraping schedule (Vercel Cron)
-- [ ] Implement deduplication logic
-- [ ] Optimize database queries
-- [ ] Add data validation
-
-### Week 4: UI Development
-- [ ] Design landing page
-- [ ] Create user input form
-- [ ] Build results display
-- [ ] Add loading states and error handling
-
-### Week 5: Polish & Features
-- [ ] Add dining hall comparison feature
-- [ ] Implement MyFitnessPal API integration
-- [ ] Improve UI/UX based on testing
-- [ ] Deploy to Vercel
+- `npm run dev` — Start development server with Turbopack
+- `npm run build` — Build for production
+- `npm run start` — Start production server
+- `npm run lint` — Run ESLint
+- `npm run test` — Run Vitest unit tests
+- `npm run test:e2e` — Run Playwright E2E tests
+- `npm run db:generate` — Generate database migrations
+- `npm run db:migrate` — Run database migrations
+- `npm run db:push` — Push schema changes to database
+- `npm run db:studio` — Open Drizzle Studio (database GUI)
 
 ## Contributing
 
-This is a capstone project by Luke Mossbarger (Winter Quarter 2026).
+Capstone project by Luke Mossbarger (Winter Quarter 2026).
 
 ## License
 
