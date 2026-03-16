@@ -85,7 +85,7 @@ export function MacroDashboard({ progress }: MacroDashboardProps) {
     <div className="bg-purple-50 dark:bg-gray-900 rounded-2xl p-6 mb-6">
       <h3 className="text-2xl font-black text-gray-800 dark:text-white mb-4">📊 Today's Macro Progress</h3>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         <MacroItem
           label="Calories"
           consumed={progress.calories.consumed}

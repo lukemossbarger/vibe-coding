@@ -254,10 +254,10 @@ export function RecommendationsTab({
   const hasEnoughInfo = userProfile.fitnessGoal || userProfile.targetCalories;
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
+    <div className="max-w-6xl mx-auto p-3 sm:p-6">
       {/* Header */}
-      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 mb-6">
-        <div className="flex items-center justify-between mb-4">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-4 sm:p-6 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
           <div>
             <h2 className="text-2xl font-black text-gray-800 dark:text-white">
               AI-Powered Recommendations
@@ -315,7 +315,7 @@ export function RecommendationsTab({
               className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg border-2 border-purple-200 dark:border-gray-700 hover:border-purple-400 dark:hover:border-[#C9A530] transition-all hover:shadow-xl overflow-hidden flex flex-col"
             >
               {/* Card Header */}
-              <div className="bg-purple-600 dark:bg-gradient-to-r dark:from-[#C9A530] dark:via-[#EDD96A] dark:to-[#B8943A] px-6 py-4">
+              <div className="bg-purple-600 dark:bg-gradient-to-r dark:from-[#C9A530] dark:via-[#EDD96A] dark:to-[#B8943A] px-4 py-3 sm:px-6 sm:py-4">
                 <div className="flex items-center gap-3">
                   <div className="bg-white/20 backdrop-blur-sm w-10 h-10 rounded-full flex items-center justify-center font-black text-lg text-white flex-shrink-0">
                     {index + 1}
@@ -324,7 +324,7 @@ export function RecommendationsTab({
                 </div>
               </div>
 
-              <div className="p-6 flex flex-col flex-1">
+              <div className="p-4 sm:p-6 flex flex-col flex-1">
                 {/* AI Description */}
                 <div className="bg-purple-50 dark:bg-gray-800 rounded-xl p-4 mb-4">
                   <p className="text-sm text-gray-700 leading-relaxed">

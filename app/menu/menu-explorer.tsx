@@ -84,6 +84,9 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
     setSelectedTime(
       `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`
     );
+    // Default to the current meal period across any open hall, or "all" if none open
+    const currentMeal = diningHalls.map((h) => getCurrentMealPeriod(h, now)).find(Boolean);
+    if (currentMeal) setSelectedMeal(currentMeal);
     fetchProfile();
     fetchFoodPreferences();
   }, []);
@@ -250,6 +253,41 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
     setDietaryFilters((prev) => ({ ...prev, [filter]: !prev[filter] }));
   };
 
+  const [collapsedHalls, setCollapsedHalls] = useState<Set<string>>(new Set());
+  const [collapsedStations, setCollapsedStations] = useState<Set<string>>(new Set());
+  const [hallsInitialized, setHallsInitialized] = useState(false);
+
+  // Auto-collapse closed halls on initial load
+  useEffect(() => {
+    if (hallsInitialized || Object.keys(itemsByDiningHall).length === 0) return;
+    const closedHalls = Object.keys(itemsByDiningHall).filter(
+      (hall) => getCurrentMealPeriod(hall, selectedDateTime) === null
+    );
+    if (closedHalls.length > 0) setCollapsedHalls(new Set(closedHalls));
+    setHallsInitialized(true);
+  }, [itemsByDiningHall, selectedDateTime, hallsInitialized]);
+
+  const toggleHall = (hall: string) => {
+    setCollapsedHalls((prev) => {
+      const next = new Set(prev);
+      next.has(hall) ? next.delete(hall) : next.add(hall);
+      return next;
+    });
+  };
+
+  const toggleStation = (hall: string, station: string) => {
+    const key = `${hall}::${station}`;
+    setCollapsedStations((prev) => {
+      const next = new Set(prev);
+      next.has(key) ? next.delete(key) : next.add(key);
+      return next;
+    });
+  };
+
+  // Strip trailing numbers so "Flame 1" and "Flame 3" group together as "Flame"
+  const normalizeStation = (name: string | null) =>
+    name ? name.replace(/\s+\d+$/, "").trim() : "Other";
+
   return (
     <>
     <div className="space-y-8">
@@ -257,7 +295,7 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
       <div className="sticky top-0 z-30 bg-white dark:bg-gray-950 backdrop-blur-lg border-b border-purple-100 dark:border-gray-700 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 py-4">
           {/* Top Row: Date, Time, Search, Profile */}
-          <div className="flex flex-wrap items-center gap-3 mb-3">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3 mb-3">
             <input
               type="date"
               value={selectedDate}
@@ -284,7 +322,7 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
               placeholder="Search dishes..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-1 min-w-[200px] px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 dark:focus:ring-[#C9A530] focus:border-transparent dark:bg-gray-800 dark:text-white dark:placeholder-gray-400"
+              className="flex-1 w-full sm:min-w-[200px] px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 dark:focus:ring-[#C9A530] focus:border-transparent dark:bg-gray-800 dark:text-white dark:placeholder-gray-400"
             />
             <button
               onClick={() => setShowProfileModal(!showProfileModal)}
@@ -299,7 +337,7 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
           </div>
 
           {/* Second Row: Hall, Meal, Dietary Filters */}
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1">
             <select
               value={selectedHall}
               onChange={(e) => setSelectedHall(e.target.value)}
@@ -334,7 +372,7 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
               <button
                 key={key}
                 onClick={() => toggleDietaryFilter(key as keyof typeof dietaryFilters)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
+                className={`flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
                   dietaryFilters[key as keyof typeof dietaryFilters]
                     ? "bg-purple-600 dark:bg-gradient-to-r dark:from-[#C9A530] dark:via-[#EDD96A] dark:to-[#B8943A] text-white dark:text-gray-900 shadow-sm"
                     : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600"
@@ -367,27 +405,65 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
 
         {/* Dining Halls - Grouped Cards */}
         <div className="space-y-6">
-          {Object.entries(itemsByDiningHall).map(([diningHall, hallItems]) => {
+          {Object.entries(itemsByDiningHall).sort(([hallA, a], [hallB, b]) => {
+            const openA = getCurrentMealPeriod(hallA, selectedDateTime) !== null ? 1 : 0;
+            const openB = getCurrentMealPeriod(hallB, selectedDateTime) !== null ? 1 : 0;
+            if (openB !== openA) return openB - openA;
+            const likedA = a.filter((i) => likes.includes(i.name)).length;
+            const likedB = b.filter((i) => likes.includes(i.name)).length;
+            return likedB - likedA;
+          }).map(([diningHall, hallItems]) => {
             const currentMeal = getCurrentMealPeriod(diningHall, selectedDateTime);
             const isOpen = currentMeal !== null;
             const mealTime = currentMeal ? DINING_HALL_SCHEDULES[diningHall]?.meals[currentMeal as MealPeriod] : null;
+            const isHallCollapsed = collapsedHalls.has(diningHall);
+            const likedCount = hallItems.filter((i) => likes.includes(i.name)).length;
+
+            // Group items by normalized station name, deduplicating by name across meal periods
+            type MergedItem = MenuItem & { mealPeriods: string[] };
+            const itemsByStation = hallItems.reduce((acc, item) => {
+              const key = normalizeStation(item.station);
+              if (!acc[key]) acc[key] = [];
+              const existing = acc[key].find((i) => i.name === item.name);
+              if (existing) {
+                if (!existing.mealPeriods.includes(item.mealPeriod)) {
+                  existing.mealPeriods.push(item.mealPeriod);
+                }
+              } else {
+                acc[key].push({ ...item, mealPeriods: [item.mealPeriod] });
+              }
+              return acc;
+            }, {} as Record<string, MergedItem[]>);
 
             return (
               <div
                 key={diningHall}
-                className="bg-white dark:bg-gray-900 rounded-3xl shadow-xl overflow-hidden border-2 border-purple-100 dark:border-gray-700 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300"
+                className="bg-white dark:bg-gray-900 rounded-3xl shadow-xl overflow-hidden border-2 border-purple-100 dark:border-gray-700 transition-all duration-300"
               >
-                {/* Dining Hall Header with Vibrant Gradient */}
-                <div className={`px-8 py-6 ${
-                  isOpen
-                    ? "bg-purple-600 dark:bg-gradient-to-r dark:from-[#C9A530] dark:via-[#EDD96A] dark:to-[#B8943A] shadow-lg"
-                    : "bg-gray-500 dark:bg-gray-700"
-                }`}>
+                {/* Clickable Dining Hall Header */}
+                <button
+                  onClick={() => toggleHall(diningHall)}
+                  className={`w-full text-left px-4 py-4 sm:px-8 sm:py-6 ${
+                    isOpen
+                      ? "bg-purple-600 dark:bg-gradient-to-r dark:from-[#C9A530] dark:via-[#EDD96A] dark:to-[#B8943A]"
+                      : "bg-gray-500 dark:bg-gray-700"
+                  }`}
+                >
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <h3 className="text-2xl font-bold text-white dark:text-gray-900 mb-1">
-                        {diningHall.replace(" Dining Commons", "").replace("Foster Walker ", "Foster Walker")}
-                      </h3>
+                      <div className="flex items-center gap-3 mb-1">
+                        <h3 className="text-2xl font-bold text-white dark:text-gray-900">
+                          {diningHall.replace(" Dining Commons", "").replace("Foster Walker ", "Foster Walker")}
+                        </h3>
+                        {likedCount > 0 && (
+                          <div className="relative flex items-center">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-lg bg-green-300 opacity-60"></span>
+                            <span className="relative flex items-center gap-1.5 px-2.5 py-1 bg-green-500 text-white text-xs font-black rounded-lg shadow-md">
+                              👍 {likedCount}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                       <div className="flex items-center gap-3 text-white/90 dark:text-gray-900/80">
                         {isOpen && currentMeal && mealTime ? (
                           <>
@@ -400,153 +476,225 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
                         )}
                       </div>
                     </div>
-                    {isOpen && (
-                      <div className="flex items-center gap-2 px-5 py-2.5 bg-white/30 backdrop-blur-md rounded-2xl shadow-lg border-2 border-white/50">
-                        <span className="relative flex h-4 w-4">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-300 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-4 w-4 bg-yellow-400 shadow-lg"></span>
-                        </span>
-                        <span className="text-white dark:text-gray-900 font-black text-base tracking-wide drop-shadow-lg">OPEN NOW</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Items Grid */}
-                <div className="p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {hallItems.map((item) => (
-                      <div
-                        key={item.id}
-                        className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-purple-200 dark:border-gray-600 hover:border-purple-400 dark:hover:border-[#C9A530] hover:shadow-xl hover:scale-105 transition-all duration-300 p-5 group cursor-pointer"
+                    <div className="flex items-center gap-3">
+                      {isOpen && (
+                        <div className="flex items-center gap-2 px-4 py-2 bg-white/30 backdrop-blur-md rounded-2xl shadow-lg border-2 border-white/50">
+                          <span className="relative flex h-4 w-4">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-300 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-4 w-4 bg-yellow-400 shadow-lg"></span>
+                          </span>
+                          <span className="text-white dark:text-gray-900 font-black text-sm tracking-wide drop-shadow-lg">OPEN NOW</span>
+                        </div>
+                      )}
+                      <span className="text-white/80 dark:text-gray-900/70 text-xs font-medium mr-1">
+                        {hallItems.length} items
+                      </span>
+                      <svg
+                        className={`w-5 h-5 text-white dark:text-gray-900 transition-transform duration-200 ${isHallCollapsed ? "-rotate-90" : ""}`}
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
                       >
-                        {/* Item Header */}
-                        <div className="mb-3">
-                          <h4 className="font-semibold text-base text-gray-900 dark:text-white mb-1 group-hover:text-purple-700 dark:group-hover:text-[#C9A530] transition-colors">
-                            {item.name}
-                          </h4>
-                          <div className="flex items-center gap-2 text-xs text-gray-600">
-                            <span className="capitalize font-medium text-purple-600 dark:text-[#C9A530]">{item.mealPeriod}</span>
-                            {item.station && (
-                              <>
-                                <span>•</span>
-                                <span className="font-medium">{item.station}</span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Nutrition Info */}
-                        {item.calories && (
-                          <div className="mb-3 p-3 bg-purple-50 dark:bg-gray-700 rounded-xl border-2 border-purple-200 dark:border-gray-600 shadow-sm">
-                            <div className="grid grid-cols-2 gap-2 text-xs">
-                              <div className="flex justify-between">
-                                <span className="text-gray-600 dark:text-gray-400">Cal</span>
-                                <span className="font-bold text-gray-900 dark:text-white">{item.calories}</span>
-                              </div>
-                              {item.protein && (
-                                <div className="flex justify-between">
-                                  <span className="text-gray-600 dark:text-gray-400">Protein</span>
-                                  <span className="font-bold text-gray-900 dark:text-white">{item.protein}g</span>
-                                </div>
-                              )}
-                              {item.carbs && (
-                                <div className="flex justify-between">
-                                  <span className="text-gray-600 dark:text-gray-400">Carbs</span>
-                                  <span className="font-bold text-gray-900 dark:text-white">{item.carbs}g</span>
-                                </div>
-                              )}
-                              {item.fat && (
-                                <div className="flex justify-between">
-                                  <span className="text-gray-600 dark:text-gray-400">Fat</span>
-                                  <span className="font-bold text-gray-900 dark:text-white">{item.fat}g</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Dietary Tags + Like/Dislike */}
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex flex-wrap gap-1.5 flex-1">
-                            {item.isVegetarian && (
-                              <span className="px-3 py-1.5 bg-gradient-to-r from-green-200 via-emerald-200 to-teal-200 text-green-800 text-xs rounded-full font-bold shadow-md border-2 border-green-300">
-                                🌱 Vegetarian
-                              </span>
-                            )}
-                            {item.isVegan && (
-                              <span className="px-3 py-1.5 bg-gradient-to-r from-lime-200 via-green-200 to-emerald-200 text-green-800 text-xs rounded-full font-bold shadow-md border-2 border-green-300">
-                                🥬 Vegan
-                              </span>
-                            )}
-                            {item.isGlutenFree && (
-                              <span className="px-3 py-1.5 bg-gradient-to-r from-blue-200 via-cyan-200 to-sky-200 text-blue-800 text-xs rounded-full font-bold shadow-md border-2 border-blue-300">
-                                🌾 GF
-                              </span>
-                            )}
-                            {item.isKosher && (
-                              <span className="px-3 py-1.5 bg-gradient-to-r from-purple-200 via-violet-200 to-indigo-200 text-purple-800 text-xs rounded-full font-bold shadow-md border-2 border-purple-300">
-                                ✡️ Kosher
-                              </span>
-                            )}
-                            {item.isDairyFree && (
-                              <span className="px-3 py-1.5 bg-gradient-to-r from-yellow-200 via-amber-200 to-orange-200 text-yellow-800 text-xs rounded-full font-bold shadow-md border-2 border-yellow-300">
-                                🥛 DF
-                              </span>
-                            )}
-                            {item.isNutFree && (
-                              <span className="px-3 py-1.5 bg-gradient-to-r from-orange-200 via-red-200 to-rose-200 text-orange-800 text-xs rounded-full font-bold shadow-md border-2 border-orange-300">
-                                🥜 NF
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex gap-1 flex-shrink-0">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (likes.includes(item.name)) {
-                                  handleRemovePreference(item.name, "like");
-                                } else {
-                                  handleAddPreference(item.name, "like");
-                                }
-                              }}
-                              className={`p-1.5 rounded-lg transition-all ${
-                                likes.includes(item.name)
-                                  ? "bg-green-100 text-green-600 border border-green-300"
-                                  : "text-gray-400 hover:text-green-500 hover:bg-green-50 border border-transparent"
-                              }`}
-                              title={likes.includes(item.name) ? "Remove from likes" : "Add to likes"}
-                            >
-                              <svg className="w-4 h-4" fill={likes.includes(item.name) ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
-                              </svg>
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (dislikes.includes(item.name)) {
-                                  handleRemovePreference(item.name, "dislike");
-                                } else {
-                                  handleAddPreference(item.name, "dislike");
-                                }
-                              }}
-                              className={`p-1.5 rounded-lg transition-all ${
-                                dislikes.includes(item.name)
-                                  ? "bg-red-100 text-red-600 border border-red-300"
-                                  : "text-gray-400 hover:text-red-500 hover:bg-red-50 border border-transparent"
-                              }`}
-                              title={dislikes.includes(item.name) ? "Remove from dislikes" : "Add to dislikes"}
-                            >
-                              <svg className="w-4 h-4" fill={dislikes.includes(item.name) ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018c.163 0 .326.02.485.06L17 4m-7 10v2a2 2 0 002 2h.095c.5 0 .905-.405.905-.905 0-.714.211-1.412.608-2.006L17 13V4m-7 10h2m5-6h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5" />
-                              </svg>
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
                   </div>
-                </div>
+                </button>
+
+                {/* Collapsible body: stations */}
+                {!isHallCollapsed && (
+                  <div className="p-4 sm:p-6 space-y-4">
+                    {Object.entries(itemsByStation).sort(([, a], [, b]) => {
+                      const hasLikedA = a.some((i) => likes.includes(i.name)) ? 1 : 0;
+                      const hasLikedB = b.some((i) => likes.includes(i.name)) ? 1 : 0;
+                      if (hasLikedB !== hasLikedA) return hasLikedB - hasLikedA;
+                      const maxA = Math.max(...a.map((i) => i.calories ?? 0));
+                      const maxB = Math.max(...b.map((i) => i.calories ?? 0));
+                      return maxB - maxA;
+                    }).map(([stationName, stationItems]) => {
+                      const stationKey = `${diningHall}::${stationName}`;
+                      const isStationCollapsed = collapsedStations.has(stationKey);
+
+                      return (
+                        <div key={stationName} className="rounded-2xl border border-purple-100 dark:border-gray-700 overflow-hidden">
+                          {/* Station header */}
+                          <button
+                            onClick={() => toggleStation(diningHall, stationName)}
+                            className="w-full flex items-center justify-between px-4 py-3 bg-purple-50 dark:bg-gray-800 hover:bg-purple-100 dark:hover:bg-gray-700 transition-colors text-left"
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-purple-700 dark:text-[#C9A530] text-sm">{stationName}</span>
+                              <span className="text-xs text-gray-500 dark:text-gray-400">{stationItems.length} item{stationItems.length !== 1 ? "s" : ""}</span>
+                            </div>
+                            <svg
+                              className={`w-4 h-4 text-purple-500 dark:text-[#C9A530] transition-transform duration-200 ${isStationCollapsed ? "-rotate-90" : ""}`}
+                              fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </button>
+
+                          {/* Station items grid */}
+                          {!isStationCollapsed && (
+                            <div className="p-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                              {[...stationItems].sort((a, b) => {
+                                const likedA = likes.includes(a.name) ? 1 : 0;
+                                const likedB = likes.includes(b.name) ? 1 : 0;
+                                if (likedB !== likedA) return likedB - likedA;
+                                const dislikedA = dislikes.includes(a.name) ? 1 : 0;
+                                const dislikedB = dislikes.includes(b.name) ? 1 : 0;
+                                if (dislikedB !== dislikedA) return dislikedA - dislikedB;
+                                return (b.calories ?? 0) - (a.calories ?? 0);
+                              }).map((item) => {
+                                const isDisliked = dislikes.includes(item.name);
+                                return isDisliked ? (
+                                  /* Collapsed disliked item */
+                                  <div
+                                    key={item.id}
+                                    className="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700 px-3 py-2 flex items-center justify-between gap-2 opacity-70"
+                                  >
+                                    <span className="text-xs text-gray-500 dark:text-gray-400 truncate">{item.name}</span>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleRemovePreference(item.name, "dislike");
+                                      }}
+                                      className="p-1 rounded-lg bg-red-100 text-red-500 border border-red-200 flex-shrink-0"
+                                      title="Remove from dislikes"
+                                    >
+                                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018c.163 0 .326.02.485.06L17 4m-7 10v2a2 2 0 002 2h.095c.5 0 .905-.405.905-.905 0-.714.211-1.412.608-2.006L17 13V4m-7 10h2m5-6h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5" />
+                                      </svg>
+                                    </button>
+                                  </div>
+                                ) : (
+                                <div
+                                  key={item.id}
+                                  className="bg-white dark:bg-gray-800 rounded-xl border-2 border-purple-200 dark:border-gray-600 hover:border-purple-400 dark:hover:border-[#C9A530] hover:shadow-lg transition-all duration-200 p-4 group cursor-pointer"
+                                >
+                                  {/* Item Header */}
+                                  <div className="mb-3">
+                                    <h4 className="font-semibold text-sm text-gray-900 dark:text-white mb-1 group-hover:text-purple-700 dark:group-hover:text-[#C9A530] transition-colors">
+                                      {item.name}
+                                    </h4>
+                                    <span className="capitalize text-xs font-medium text-purple-600 dark:text-[#C9A530]">{item.mealPeriods.join(" · ")}</span>
+                                  </div>
+
+                                  {/* Nutrition Info */}
+                                  {item.calories && (
+                                    <div className="mb-3 p-2 bg-purple-50 dark:bg-gray-700 rounded-lg border border-purple-200 dark:border-gray-600">
+                                      <div className="grid grid-cols-2 gap-1 text-xs">
+                                        <div className="flex justify-between">
+                                          <span className="text-gray-600 dark:text-gray-400">Cal</span>
+                                          <span className="font-bold text-gray-900 dark:text-white">{item.calories}</span>
+                                        </div>
+                                        {item.protein && (
+                                          <div className="flex justify-between">
+                                            <span className="text-gray-600 dark:text-gray-400">Protein</span>
+                                            <span className="font-bold text-gray-900 dark:text-white">{item.protein}g</span>
+                                          </div>
+                                        )}
+                                        {item.carbs && (
+                                          <div className="flex justify-between">
+                                            <span className="text-gray-600 dark:text-gray-400">Carbs</span>
+                                            <span className="font-bold text-gray-900 dark:text-white">{item.carbs}g</span>
+                                          </div>
+                                        )}
+                                        {item.fat && (
+                                          <div className="flex justify-between">
+                                            <span className="text-gray-600 dark:text-gray-400">Fat</span>
+                                            <span className="font-bold text-gray-900 dark:text-white">{item.fat}g</span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Dietary Tags + Like/Dislike */}
+                                  <div className="flex items-center justify-between gap-2">
+                                    <div className="flex flex-wrap gap-1 flex-1">
+                                      {item.isVegetarian && (
+                                        <span className="px-2 py-1 bg-gradient-to-r from-green-200 via-emerald-200 to-teal-200 text-green-800 text-xs rounded-full font-bold border border-green-300">
+                                          🌱 Veg
+                                        </span>
+                                      )}
+                                      {item.isVegan && (
+                                        <span className="px-2 py-1 bg-gradient-to-r from-lime-200 via-green-200 to-emerald-200 text-green-800 text-xs rounded-full font-bold border border-green-300">
+                                          🥬 Vegan
+                                        </span>
+                                      )}
+                                      {item.isGlutenFree && (
+                                        <span className="px-2 py-1 bg-gradient-to-r from-blue-200 via-cyan-200 to-sky-200 text-blue-800 text-xs rounded-full font-bold border border-blue-300">
+                                          🌾 GF
+                                        </span>
+                                      )}
+                                      {item.isKosher && (
+                                        <span className="px-2 py-1 bg-gradient-to-r from-purple-200 via-violet-200 to-indigo-200 text-purple-800 text-xs rounded-full font-bold border border-purple-300">
+                                          ✡️ Kosher
+                                        </span>
+                                      )}
+                                      {item.isDairyFree && (
+                                        <span className="px-2 py-1 bg-gradient-to-r from-yellow-200 via-amber-200 to-orange-200 text-yellow-800 text-xs rounded-full font-bold border border-yellow-300">
+                                          🥛 DF
+                                        </span>
+                                      )}
+                                      {item.isNutFree && (
+                                        <span className="px-2 py-1 bg-gradient-to-r from-orange-200 via-red-200 to-rose-200 text-orange-800 text-xs rounded-full font-bold border border-orange-300">
+                                          🥜 NF
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="flex gap-1 flex-shrink-0">
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          if (likes.includes(item.name)) {
+                                            handleRemovePreference(item.name, "like");
+                                          } else {
+                                            handleAddPreference(item.name, "like");
+                                          }
+                                        }}
+                                        className={`p-1.5 rounded-lg transition-all ${
+                                          likes.includes(item.name)
+                                            ? "bg-green-100 text-green-600 border border-green-300"
+                                            : "text-gray-400 hover:text-green-500 hover:bg-green-50 border border-transparent"
+                                        }`}
+                                        title={likes.includes(item.name) ? "Remove from likes" : "Add to likes"}
+                                      >
+                                        <svg className="w-4 h-4" fill={likes.includes(item.name) ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                          <path strokeLinecap="round" strokeLinejoin="round" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                                        </svg>
+                                      </button>
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          if (dislikes.includes(item.name)) {
+                                            handleRemovePreference(item.name, "dislike");
+                                          } else {
+                                            handleAddPreference(item.name, "dislike");
+                                          }
+                                        }}
+                                        className={`p-1.5 rounded-lg transition-all ${
+                                          dislikes.includes(item.name)
+                                            ? "bg-red-100 text-red-600 border border-red-300"
+                                            : "text-gray-400 hover:text-red-500 hover:bg-red-50 border border-transparent"
+                                        }`}
+                                        title={dislikes.includes(item.name) ? "Remove from dislikes" : "Add to dislikes"}
+                                      >
+                                        <svg className="w-4 h-4" fill={dislikes.includes(item.name) ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                          <path strokeLinecap="round" strokeLinejoin="round" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018c.163 0 .326.02.485.06L17 4m-7 10v2a2 2 0 002 2h.095c.5 0 .905-.405.905-.905 0-.714.211-1.412.608-2.006L17 13V4m-7 10h2m5-6h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5" />
+                                        </svg>
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             );
           })}

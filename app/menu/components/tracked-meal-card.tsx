@@ -54,7 +54,7 @@ export function TrackedMealCard({ meal }: TrackedMealCardProps) {
       </div>
 
       {/* Nutrition summary */}
-      <div className="flex gap-3 text-sm">
+      <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm">
         <div>
           <span className="text-gray-600 dark:text-gray-400">Cals:</span>{' '}
           <span className="font-semibold text-purple-700 dark:text-[#C9A530]">{meal.menuItem.calories || 'N/A'}</span>

@@ -98,7 +98,7 @@ export function UserProfileCard({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed top-20 right-4 w-[380px] z-40 max-h-[calc(100vh-6rem)]">
+    <div className="fixed top-16 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:right-4 w-[calc(100vw-2rem)] max-w-[380px] z-40 max-h-[calc(100vh-5rem)]">
       <div className="bg-white dark:bg-gray-900 rounded-2xl border-2 border-purple-200 dark:border-gray-700 shadow-lg overflow-hidden flex flex-col max-h-[calc(100vh-6rem)]">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3 border-b border-purple-200 dark:border-gray-700 bg-purple-50 dark:bg-gray-800 flex-shrink-0">
@@ -122,7 +122,7 @@ export function UserProfileCard({
             <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">
               Physical Attributes
             </h3>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-0.5">Age</label>
                 <input
@@ -352,7 +352,7 @@ export function UserProfileCard({
               <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">
                 Daily Targets
               </h3>
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 <div className="bg-purple-50 dark:bg-gray-800 rounded-lg px-2 py-2 text-center">
                   <div className="text-sm font-bold text-purple-700 dark:text-[#C9A530]">{profile.targetCalories}</div>
                   <div className="text-[10px] text-purple-600 dark:text-[#C9A530]">Cal</div>

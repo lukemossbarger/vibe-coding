@@ -53,7 +53,7 @@ export default async function MenuPage() {
         <div className="mb-8">
           <div className="flex justify-between items-center mb-4">
             <div>
-              <h1 className="text-5xl font-bold text-purple-600 dark:bg-gradient-to-r dark:from-[#C9A530] dark:via-[#EDD96A] dark:to-[#B8943A] dark:bg-clip-text dark:text-transparent mb-3">
+              <h1 className="text-3xl sm:text-5xl font-bold text-purple-600 dark:bg-gradient-to-r dark:from-[#C9A530] dark:via-[#EDD96A] dark:to-[#B8943A] dark:bg-clip-text dark:text-transparent mb-3">
                 Menu Explorer
               </h1>
               <p className="text-lg text-gray-600 dark:text-gray-400 font-medium">

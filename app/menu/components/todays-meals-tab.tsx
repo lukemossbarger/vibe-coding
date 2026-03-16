@@ -30,12 +30,12 @@ export function TodaysMealsTab({ userProfile }: TodaysMealsTabProps) {
   const progress = calculateMacroProgress(userProfile, totals);
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
+    <div className="max-w-6xl mx-auto p-3 sm:p-6">
       {/* Macro Dashboard */}
       <MacroDashboard progress={progress} />
 
       {/* Meals List */}
-      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-4 sm:p-6">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-2xl font-black text-gray-800 dark:text-white">🍽️ Today's Meals</h3>
           <span className="text-sm text-gray-600 dark:text-gray-400">

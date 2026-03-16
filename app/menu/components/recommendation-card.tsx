@@ -28,7 +28,7 @@ export function RecommendationCard({ menuItem, reasoning }: RecommendationCardPr
   };
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 border-2 border-purple-200 dark:border-gray-700 hover:border-purple-400 dark:hover:border-[#C9A530] transition-all">
+    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-4 sm:p-6 border-2 border-purple-200 dark:border-gray-700 hover:border-purple-400 dark:hover:border-[#C9A530] transition-all">
       {/* Header */}
       <div className="flex justify-between items-start mb-4">
         <div>
@@ -45,7 +45,7 @@ export function RecommendationCard({ menuItem, reasoning }: RecommendationCardPr
       </div>
 
       {/* Nutrition info */}
-      <div className="grid grid-cols-4 gap-2 mb-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
         <div className="bg-purple-50 rounded-lg p-2 text-center">
           <p className="text-xs text-gray-600">Calories</p>
           <p className="text-lg font-bold text-purple-700">{menuItem.calories || 'N/A'}</p>
@@ -79,7 +79,7 @@ export function RecommendationCard({ menuItem, reasoning }: RecommendationCardPr
             ? 'bg-green-500 text-white'
             : isAdding
             ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
-            : 'bg-purple-600 dark:bg-gradient-to-r dark:from-[#C9A530] dark:via-[#EDD96A] dark:to-[#B8943A] text-white dark:text-gray-900 hover:shadow-lg hover:scale-105 dark:hover:from-[#A88928] dark:hover:via-[#D4BC50] dark:hover:to-[#9A7820]'
+            : 'bg-purple-600 dark:bg-gradient-to-r dark:from-[#C9A530] dark:via-[#EDD96A] dark:to-[#B8943A] text-white dark:text-gray-900 hover:shadow-lg dark:hover:from-[#A88928] dark:hover:via-[#D4BC50] dark:hover:to-[#9A7820]'
         }`}
       >
         {isAdded ? '✓ Added to Today' : isAdding ? 'Adding...' : '+ Add to Today'}
