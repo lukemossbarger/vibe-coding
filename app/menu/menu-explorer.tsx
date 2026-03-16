@@ -351,30 +351,6 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
       {/* Main Content */}
       {activeTab === 'explore' && (
         <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
-        {/* AI Recommendations Section */}
-        <div className="bg-gradient-to-br from-purple-100 via-pink-50 to-blue-100 rounded-3xl shadow-xl p-8 border-2 border-purple-200">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-1">AI Meal Recommendations</h2>
-              <p className="text-sm text-gray-600">Personalized suggestions based on your profile</p>
-            </div>
-          </div>
-          {filteredItems.length > 0 ? (
-            <Recommendations
-              userProfile={userProfile}
-              availableItems={filteredItems}
-              diningHall={selectedHall !== "all" ? selectedHall : undefined}
-              mealPeriod={selectedMeal !== "all" ? selectedMeal : undefined}
-            />
-          ) : (
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6">
-              <p className="text-sm text-blue-900 font-medium">
-                No menu items available for the selected filters. Try adjusting your date, time, or filters.
-              </p>
-            </div>
-          )}
-        </div>
-
         {/* Results Count */}
         <div className="flex items-center justify-between px-2">
           <h3 className="text-2xl font-bold text-gray-900">
