@@ -357,17 +357,17 @@ export function UserProfileCard({
                   <div className="text-sm font-bold text-purple-700 dark:text-[#C9A530]">{profile.targetCalories}</div>
                   <div className="text-[10px] text-purple-600 dark:text-[#C9A530]">Cal</div>
                 </div>
-                <div className="bg-blue-50 rounded-lg px-2 py-2 text-center">
-                  <div className="text-sm font-bold text-blue-700">{profile.targetProtein}g</div>
-                  <div className="text-[10px] text-blue-600">Protein</div>
+                <div className="bg-blue-50 dark:bg-gray-800 rounded-lg px-2 py-2 text-center">
+                  <div className="text-sm font-bold text-blue-700 dark:text-[#C9A530]">{profile.targetProtein}g</div>
+                  <div className="text-[10px] text-blue-600 dark:text-[#C9A530]">Protein</div>
                 </div>
-                <div className="bg-green-50 rounded-lg px-2 py-2 text-center">
-                  <div className="text-sm font-bold text-green-700">{profile.targetCarbs}g</div>
-                  <div className="text-[10px] text-green-600">Carbs</div>
+                <div className="bg-green-50 dark:bg-gray-800 rounded-lg px-2 py-2 text-center">
+                  <div className="text-sm font-bold text-green-700 dark:text-[#C9A530]">{profile.targetCarbs}g</div>
+                  <div className="text-[10px] text-green-600 dark:text-[#C9A530]">Carbs</div>
                 </div>
-                <div className="bg-orange-50 rounded-lg px-2 py-2 text-center">
-                  <div className="text-sm font-bold text-orange-700">{profile.targetFat}g</div>
-                  <div className="text-[10px] text-orange-600">Fat</div>
+                <div className="bg-orange-50 dark:bg-gray-800 rounded-lg px-2 py-2 text-center">
+                  <div className="text-sm font-bold text-orange-700 dark:text-[#C9A530]">{profile.targetFat}g</div>
+                  <div className="text-[10px] text-orange-600 dark:text-[#C9A530]">Fat</div>
                 </div>
               </div>
             </div>

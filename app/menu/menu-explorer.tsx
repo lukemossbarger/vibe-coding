@@ -257,6 +257,66 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
   const [collapsedStations, setCollapsedStations] = useState<Set<string>>(new Set());
   const [hallsInitialized, setHallsInitialized] = useState(false);
 
+  // Favorites & ignored — persisted to localStorage
+  const [favoritedHalls, setFavoritedHalls] = useState<Set<string>>(() => {
+    if (typeof window === "undefined") return new Set();
+    try { return new Set(JSON.parse(localStorage.getItem("favorited-halls") ?? "[]")); } catch { return new Set(); }
+  });
+  const [favoritedStations, setFavoritedStations] = useState<Set<string>>(() => {
+    if (typeof window === "undefined") return new Set();
+    try { return new Set(JSON.parse(localStorage.getItem("favorited-stations") ?? "[]")); } catch { return new Set(); }
+  });
+  const [ignoredStations, setIgnoredStations] = useState<Set<string>>(() => {
+    if (typeof window === "undefined") return new Set();
+    try { return new Set(JSON.parse(localStorage.getItem("ignored-stations") ?? "[]")); } catch { return new Set(); }
+  });
+
+  const toggleFavoriteHall = (e: React.MouseEvent, hall: string) => {
+    e.stopPropagation();
+    setFavoritedHalls((prev) => {
+      const next = new Set(prev);
+      next.has(hall) ? next.delete(hall) : next.add(hall);
+      localStorage.setItem("favorited-halls", JSON.stringify([...next]));
+      return next;
+    });
+  };
+
+  const toggleFavoriteStation = (e: React.MouseEvent, key: string) => {
+    e.stopPropagation();
+    setFavoritedStations((prev) => {
+      const next = new Set(prev);
+      next.has(key) ? next.delete(key) : next.add(key);
+      localStorage.setItem("favorited-stations", JSON.stringify([...next]));
+      return next;
+    });
+    // Un-ignore if favoriting
+    setIgnoredStations((prev) => {
+      if (!prev.has(key)) return prev;
+      const next = new Set(prev);
+      next.delete(key);
+      localStorage.setItem("ignored-stations", JSON.stringify([...next]));
+      return next;
+    });
+  };
+
+  const toggleIgnoredStation = (e: React.MouseEvent, key: string) => {
+    e.stopPropagation();
+    setIgnoredStations((prev) => {
+      const next = new Set(prev);
+      next.has(key) ? next.delete(key) : next.add(key);
+      localStorage.setItem("ignored-stations", JSON.stringify([...next]));
+      return next;
+    });
+    // Un-favorite if ignoring
+    setFavoritedStations((prev) => {
+      if (!prev.has(key)) return prev;
+      const next = new Set(prev);
+      next.delete(key);
+      localStorage.setItem("favorited-stations", JSON.stringify([...next]));
+      return next;
+    });
+  };
+
   // Auto-collapse closed halls on initial load
   useEffect(() => {
     if (hallsInitialized || Object.keys(itemsByDiningHall).length === 0) return;
@@ -406,6 +466,9 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
         {/* Dining Halls - Grouped Cards */}
         <div className="space-y-6">
           {Object.entries(itemsByDiningHall).sort(([hallA, a], [hallB, b]) => {
+            const favA = favoritedHalls.has(hallA) ? 1 : 0;
+            const favB = favoritedHalls.has(hallB) ? 1 : 0;
+            if (favB !== favA) return favB - favA;
             const openA = getCurrentMealPeriod(hallA, selectedDateTime) !== null ? 1 : 0;
             const openB = getCurrentMealPeriod(hallB, selectedDateTime) !== null ? 1 : 0;
             if (openB !== openA) return openB - openA;
@@ -452,7 +515,7 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-1">
-                        <h3 className="text-2xl font-bold text-white dark:text-gray-900">
+                        <h3 className="text-xl sm:text-2xl font-bold text-white dark:text-gray-900">
                           {diningHall.replace(" Dining Commons", "").replace("Foster Walker ", "Foster Walker")}
                         </h3>
                         {likedCount > 0 && (
@@ -476,19 +539,32 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1 sm:gap-3">
                       {isOpen && (
-                        <div className="flex items-center gap-2 px-4 py-2 bg-white/30 backdrop-blur-md rounded-2xl shadow-lg border-2 border-white/50">
+                        <div className="flex items-center gap-2 px-2 py-1 sm:px-4 sm:py-2 bg-white/30 backdrop-blur-md rounded-2xl shadow-lg border-2 border-white/50">
                           <span className="relative flex h-4 w-4">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-300 opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-4 w-4 bg-yellow-400 shadow-lg"></span>
                           </span>
-                          <span className="text-white dark:text-gray-900 font-black text-sm tracking-wide drop-shadow-lg">OPEN NOW</span>
+                          <span className="hidden sm:inline text-white dark:text-gray-900 font-black text-sm tracking-wide drop-shadow-lg">OPEN NOW</span>
                         </div>
                       )}
-                      <span className="text-white/80 dark:text-gray-900/70 text-xs font-medium mr-1">
+                      <span className="hidden sm:inline text-white/80 dark:text-gray-900/70 text-xs font-medium">
                         {hallItems.length} items
                       </span>
+                      <button
+                        onClick={(e) => toggleFavoriteHall(e, diningHall)}
+                        className="p-1.5 rounded-lg hover:bg-white/20 transition-colors"
+                        title={favoritedHalls.has(diningHall) ? "Unfavorite" : "Favorite"}
+                      >
+                        <svg
+                          className={`w-5 h-5 transition-colors ${favoritedHalls.has(diningHall) ? "text-purple-300 dark:text-[#EDD96A] fill-current" : "text-white/60 dark:text-gray-900/50"}`}
+                          viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+                          fill={favoritedHalls.has(diningHall) ? "currentColor" : "none"}
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                        </svg>
+                      </button>
                       <svg
                         className={`w-5 h-5 text-white dark:text-gray-900 transition-transform duration-200 ${isHallCollapsed ? "-rotate-90" : ""}`}
                         fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
@@ -502,7 +578,15 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
                 {/* Collapsible body: stations */}
                 {!isHallCollapsed && (
                   <div className="p-4 sm:p-6 space-y-4">
-                    {Object.entries(itemsByStation).sort(([, a], [, b]) => {
+                    {Object.entries(itemsByStation).sort(([nameA, a], [nameB, b]) => {
+                      const keyA = `${diningHall}::${nameA}`;
+                      const keyB = `${diningHall}::${nameB}`;
+                      const favA = favoritedStations.has(keyA) ? 1 : 0;
+                      const favB = favoritedStations.has(keyB) ? 1 : 0;
+                      if (favB !== favA) return favB - favA;
+                      const ignA = ignoredStations.has(keyA) ? 1 : 0;
+                      const ignB = ignoredStations.has(keyB) ? 1 : 0;
+                      if (ignB !== ignA) return ignA - ignB;
                       const hasLikedA = a.some((i) => likes.includes(i.name)) ? 1 : 0;
                       const hasLikedB = b.some((i) => likes.includes(i.name)) ? 1 : 0;
                       if (hasLikedB !== hasLikedA) return hasLikedB - hasLikedA;
@@ -512,25 +596,49 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
                     }).map(([stationName, stationItems]) => {
                       const stationKey = `${diningHall}::${stationName}`;
                       const isStationCollapsed = collapsedStations.has(stationKey);
+                      const isStationFavorited = favoritedStations.has(stationKey);
+                      const isStationIgnored = ignoredStations.has(stationKey);
 
                       return (
-                        <div key={stationName} className="rounded-2xl border border-purple-100 dark:border-gray-700 overflow-hidden">
+                        <div key={stationName} className={`rounded-2xl border overflow-hidden ${isStationIgnored ? "border-gray-200 dark:border-gray-700 opacity-60" : "border-purple-100 dark:border-gray-700"}`}>
                           {/* Station header */}
-                          <button
-                            onClick={() => toggleStation(diningHall, stationName)}
-                            className="w-full flex items-center justify-between px-4 py-3 bg-purple-50 dark:bg-gray-800 hover:bg-purple-100 dark:hover:bg-gray-700 transition-colors text-left"
-                          >
-                            <div className="flex items-center gap-2">
-                              <span className="font-semibold text-purple-700 dark:text-[#C9A530] text-sm">{stationName}</span>
-                              <span className="text-xs text-gray-500 dark:text-gray-400">{stationItems.length} item{stationItems.length !== 1 ? "s" : ""}</span>
-                            </div>
-                            <svg
-                              className={`w-4 h-4 text-purple-500 dark:text-[#C9A530] transition-transform duration-200 ${isStationCollapsed ? "-rotate-90" : ""}`}
-                              fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
+                          <div className={`flex items-center justify-between px-4 py-3 ${isStationIgnored ? "bg-gray-50 dark:bg-gray-800/50" : "bg-purple-50 dark:bg-gray-800"}`}>
+                            <button
+                              onClick={() => toggleStation(diningHall, stationName)}
+                              className="flex items-center gap-2 flex-1 text-left hover:opacity-80 transition-opacity"
                             >
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                            </svg>
-                          </button>
+                              <span className={`font-semibold text-sm ${isStationIgnored ? "text-gray-400 dark:text-gray-500" : "text-purple-700 dark:text-[#C9A530]"}`}>{stationName}</span>
+                              <span className="text-xs text-gray-500 dark:text-gray-400">{stationItems.length} item{stationItems.length !== 1 ? "s" : ""}</span>
+                              <svg
+                                className={`w-4 h-4 transition-transform duration-200 ${isStationIgnored ? "text-gray-400 dark:text-gray-500" : "text-purple-500 dark:text-[#C9A530]"} ${isStationCollapsed ? "-rotate-90" : ""}`}
+                                fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
+                              >
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </button>
+                            <div className="flex items-center gap-1 ml-2">
+                              <button
+                                onClick={(e) => toggleFavoriteStation(e, stationKey)}
+                                className="p-1.5 rounded-lg hover:bg-purple-100 dark:hover:bg-gray-700 transition-colors"
+                                title={isStationFavorited ? "Unfavorite station" : "Favorite station"}
+                              >
+                                <svg
+                                  className={`w-4 h-4 transition-colors ${isStationFavorited ? "text-purple-600 dark:text-[#EDD96A]" : "text-gray-300 dark:text-gray-600 hover:text-purple-400 dark:hover:text-[#C9A530]"}`}
+                                  viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+                                  fill={isStationFavorited ? "currentColor" : "none"}
+                                >
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                                </svg>
+                              </button>
+                              <button
+                                onClick={(e) => toggleIgnoredStation(e, stationKey)}
+                                className={`p-1.5 rounded-lg transition-colors font-bold text-sm leading-none ${isStationIgnored ? "bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300" : "text-gray-300 dark:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-500 dark:hover:text-gray-400"}`}
+                                title={isStationIgnored ? "Un-ignore station" : "Don't care about this station"}
+                              >
+                                −
+                              </button>
+                            </div>
+                          </div>
 
                           {/* Station items grid */}
                           {!isStationCollapsed && (
