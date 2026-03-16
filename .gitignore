@@ -46,6 +46,9 @@ yarn-error.log*
 /playwright-report/
 /playwright/.cache/
 
+# markdown notes
+/markdowns
+
 # IDE
 .vscode/*
 !.vscode/settings.json

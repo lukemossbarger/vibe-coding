@@ -1,18 +1,17 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "./schema";
-import * as dotenv from "dotenv";
-
-// Load environment variables
-dotenv.config();
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL environment variable is not set");
 }
 
-// Create postgres client
-const connectionString = process.env.DATABASE_URL;
-const client = postgres(connectionString);
+// `prepare: false` is required for Supabase's transaction-mode connection pooler.
+// A single shared instance prevents connection pool exhaustion.
+const client = postgres(process.env.DATABASE_URL, {
+  prepare: false,
+  max: 3,
+  connect_timeout: 10,
+});
 
-// Create drizzle instance
 export const db = drizzle(client, { schema });

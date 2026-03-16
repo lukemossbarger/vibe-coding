@@ -98,11 +98,11 @@ export function UserProfileCard({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed top-20 right-4 w-[380px] z-40 max-h-[calc(100vh-6rem)]">
-      <div className="bg-gradient-to-b from-white via-purple-50/30 to-blue-50/30 rounded-2xl border-2 border-purple-200 shadow-lg overflow-hidden flex flex-col max-h-[calc(100vh-6rem)]">
+    <div className="fixed top-16 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:right-4 w-[calc(100vw-2rem)] max-w-[380px] z-40 max-h-[calc(100vh-5rem)]">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl border-2 border-purple-200 dark:border-gray-700 shadow-lg overflow-hidden flex flex-col max-h-[calc(100vh-6rem)]">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3 border-b border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50 flex-shrink-0">
-          <h2 className="text-lg font-black bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+        <div className="flex items-center justify-between px-5 py-3 border-b border-purple-200 dark:border-gray-700 bg-purple-50 dark:bg-gray-800 flex-shrink-0">
+          <h2 className="text-lg font-black text-purple-600 dark:bg-gradient-to-r dark:from-[#C9A530] dark:via-[#EDD96A] dark:to-[#B8943A] dark:bg-clip-text dark:text-transparent">
             Your Profile
           </h2>
           <button
@@ -119,12 +119,12 @@ export function UserProfileCard({
         <div className="p-5 space-y-5 overflow-y-auto flex-1">
           {/* Physical Attributes */}
           <div>
-            <h3 className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wider">
+            <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">
               Physical Attributes
             </h3>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-0.5">Age</label>
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-0.5">Age</label>
                 <input
                   type="number"
                   value={profile.age ?? ""}
@@ -132,19 +132,19 @@ export function UserProfileCard({
                     const val = e.target.value;
                     setProfile({ ...profile, age: val ? parseInt(val) : undefined });
                   }}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:focus:ring-[#C9A530] focus:border-transparent dark:bg-gray-800 dark:text-white"
                   placeholder="25"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-0.5">Gender</label>
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-0.5">Gender</label>
                 <select
                   value={profile.gender ?? ""}
                   onChange={(e) => {
                     const val = e.target.value;
                     setProfile({ ...profile, gender: val ? (val as Gender) : undefined });
                   }}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:focus:ring-[#C9A530] focus:border-transparent dark:bg-gray-800 dark:text-white"
                 >
                   <option value="">Select...</option>
                   <option value="male">Male</option>
@@ -153,7 +153,7 @@ export function UserProfileCard({
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-0.5">Height (in)</label>
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-0.5">Height (in)</label>
                 <input
                   type="number"
                   value={profile.height ?? ""}
@@ -161,12 +161,12 @@ export function UserProfileCard({
                     const val = e.target.value;
                     setProfile({ ...profile, height: val ? parseInt(val) : undefined });
                   }}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:focus:ring-[#C9A530] focus:border-transparent dark:bg-gray-800 dark:text-white"
                   placeholder="70"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-0.5">Weight (lbs)</label>
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-0.5">Weight (lbs)</label>
                 <input
                   type="number"
                   value={profile.weight ?? ""}
@@ -174,7 +174,7 @@ export function UserProfileCard({
                     const val = e.target.value;
                     setProfile({ ...profile, weight: val ? parseInt(val) : undefined });
                   }}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:focus:ring-[#C9A530] focus:border-transparent dark:bg-gray-800 dark:text-white"
                   placeholder="180"
                 />
               </div>
@@ -183,16 +183,16 @@ export function UserProfileCard({
 
           {/* Goals */}
           <div>
-            <h3 className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wider">Goals</h3>
+            <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">Goals</h3>
             <div className="space-y-3">
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-0.5">Activity Level</label>
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-0.5">Activity Level</label>
                 <select
                   value={profile.activityLevel || "moderate"}
                   onChange={(e) =>
                     setProfile({ ...profile, activityLevel: e.target.value as ActivityLevel })
                   }
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:focus:ring-[#C9A530] focus:border-transparent dark:bg-gray-800 dark:text-white"
                 >
                   <option value="sedentary">Sedentary</option>
                   <option value="light">Light (1-3 days/wk)</option>
@@ -202,13 +202,13 @@ export function UserProfileCard({
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-0.5">Fitness Goal</label>
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-0.5">Fitness Goal</label>
                 <select
                   value={profile.fitnessGoal || "maintain"}
                   onChange={(e) =>
                     setProfile({ ...profile, fitnessGoal: e.target.value as FitnessGoal })
                   }
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:focus:ring-[#C9A530] focus:border-transparent dark:bg-gray-800 dark:text-white"
                 >
                   <option value="lose_weight">Lose Weight</option>
                   <option value="maintain">Maintain Weight</option>
@@ -221,7 +221,7 @@ export function UserProfileCard({
 
           {/* Dietary Restrictions */}
           <div>
-            <h3 className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wider">
+            <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">
               Dietary Restrictions
             </h3>
             <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
@@ -240,9 +240,9 @@ export function UserProfileCard({
                     onChange={(e) =>
                       setProfile({ ...profile, [key]: e.target.checked })
                     }
-                    className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                    className="w-4 h-4 text-purple-600 dark:text-[#C9A530] border-gray-300 dark:border-gray-600 rounded focus:ring-purple-500 dark:focus:ring-[#C9A530]"
                   />
-                  <span className="text-sm text-gray-700">{label}</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-200">{label}</span>
                 </label>
               ))}
             </div>
@@ -349,25 +349,25 @@ export function UserProfileCard({
           {/* Daily Targets */}
           {profile.targetCalories && (
             <div>
-              <h3 className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wider">
+              <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">
                 Daily Targets
               </h3>
-              <div className="grid grid-cols-4 gap-2">
-                <div className="bg-purple-50 rounded-lg px-2 py-2 text-center">
-                  <div className="text-sm font-bold text-purple-700">{profile.targetCalories}</div>
-                  <div className="text-[10px] text-purple-600">Cal</div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="bg-purple-50 dark:bg-gray-800 rounded-lg px-2 py-2 text-center">
+                  <div className="text-sm font-bold text-purple-700 dark:text-[#C9A530]">{profile.targetCalories}</div>
+                  <div className="text-[10px] text-purple-600 dark:text-[#C9A530]">Cal</div>
                 </div>
-                <div className="bg-blue-50 rounded-lg px-2 py-2 text-center">
-                  <div className="text-sm font-bold text-blue-700">{profile.targetProtein}g</div>
-                  <div className="text-[10px] text-blue-600">Protein</div>
+                <div className="bg-blue-50 dark:bg-gray-800 rounded-lg px-2 py-2 text-center">
+                  <div className="text-sm font-bold text-blue-700 dark:text-[#C9A530]">{profile.targetProtein}g</div>
+                  <div className="text-[10px] text-blue-600 dark:text-[#C9A530]">Protein</div>
                 </div>
-                <div className="bg-green-50 rounded-lg px-2 py-2 text-center">
-                  <div className="text-sm font-bold text-green-700">{profile.targetCarbs}g</div>
-                  <div className="text-[10px] text-green-600">Carbs</div>
+                <div className="bg-green-50 dark:bg-gray-800 rounded-lg px-2 py-2 text-center">
+                  <div className="text-sm font-bold text-green-700 dark:text-[#C9A530]">{profile.targetCarbs}g</div>
+                  <div className="text-[10px] text-green-600 dark:text-[#C9A530]">Carbs</div>
                 </div>
-                <div className="bg-orange-50 rounded-lg px-2 py-2 text-center">
-                  <div className="text-sm font-bold text-orange-700">{profile.targetFat}g</div>
-                  <div className="text-[10px] text-orange-600">Fat</div>
+                <div className="bg-orange-50 dark:bg-gray-800 rounded-lg px-2 py-2 text-center">
+                  <div className="text-sm font-bold text-orange-700 dark:text-[#C9A530]">{profile.targetFat}g</div>
+                  <div className="text-[10px] text-orange-600 dark:text-[#C9A530]">Fat</div>
                 </div>
               </div>
             </div>
@@ -375,10 +375,10 @@ export function UserProfileCard({
         </div>
 
         {/* Save Button */}
-        <div className="px-5 py-4 border-t border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50 flex-shrink-0">
+        <div className="px-5 py-4 border-t border-purple-200 dark:border-gray-700 bg-purple-50 dark:bg-gray-800 flex-shrink-0">
           <button
             onClick={handleSave}
-            className="w-full px-4 py-2.5 bg-gradient-to-r from-purple-600 via-purple-700 to-blue-600 text-white rounded-xl font-bold text-sm hover:from-purple-700 hover:via-purple-800 hover:to-blue-700 transition-all shadow-md hover:shadow-lg"
+            className="w-full px-4 py-2.5 bg-purple-600 dark:bg-gradient-to-r dark:from-[#C9A530] dark:via-[#EDD96A] dark:to-[#B8943A] text-white dark:text-gray-900 rounded-xl font-bold text-sm hover:bg-purple-700 dark:hover:from-[#A88928] dark:hover:via-[#D4BC50] dark:hover:to-[#9A7820] transition-all shadow-md hover:shadow-lg"
           >
             Save Profile
           </button>

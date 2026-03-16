@@ -17,7 +17,7 @@ export async function UserMenu() {
             className="w-8 h-8 rounded-full border-2 border-purple-200"
           />
         )}
-        <span className="text-sm font-medium text-gray-700">
+        <span className="hidden sm:inline text-sm font-medium text-gray-700">
           {session.user.name || session.user.email}
         </span>
       </div>

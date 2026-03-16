@@ -9,8 +9,8 @@ interface MacroDashboardProps {
 export function MacroDashboard({ progress }: MacroDashboardProps) {
   if (!progress) {
     return (
-      <div className="bg-gradient-to-r from-purple-100 to-blue-100 rounded-2xl p-6 mb-6">
-        <p className="text-center text-gray-700">
+      <div className="bg-purple-100 dark:bg-gray-800 rounded-2xl p-6 mb-6">
+        <p className="text-center text-gray-700 dark:text-gray-300">
           📊 Set up your profile to track macro progress!
         </p>
       </div>
@@ -49,9 +49,9 @@ export function MacroDashboard({ progress }: MacroDashboardProps) {
     const barColorClass = getBarColor(consumed, target);
 
     return (
-      <div className="bg-white rounded-xl p-4 shadow-md">
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-md">
         <div className="flex justify-between items-center mb-2">
-          <h4 className="font-bold text-gray-800">
+          <h4 className="font-bold text-gray-800 dark:text-white">
             {emoji} {label}
           </h4>
           <span className={`text-xs font-semibold px-2 py-1 rounded-full ${colorClass}`}>
@@ -60,7 +60,7 @@ export function MacroDashboard({ progress }: MacroDashboardProps) {
         </div>
 
         {/* Progress bar */}
-        <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
+        <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-3 mb-2">
           <div
             className={`${barColorClass} h-3 rounded-full transition-all duration-300`}
             style={{ width: `${percentage}%` }}
@@ -68,24 +68,24 @@ export function MacroDashboard({ progress }: MacroDashboardProps) {
         </div>
 
         <div className="flex justify-between text-sm">
-          <span className="text-gray-600">
+          <span className="text-gray-600 dark:text-gray-400">
             {remaining >= 0 ? (
-              <>Remaining: <span className="font-semibold text-gray-800">{remaining}</span></>
+              <>Remaining: <span className="font-semibold text-gray-800 dark:text-gray-200">{remaining}</span></>
             ) : (
               <>Over by: <span className="font-semibold text-red-600">{Math.abs(remaining)}</span></>
             )}
           </span>
-          <span className="text-gray-500">{Math.round(percentage)}%</span>
+          <span className="text-gray-500 dark:text-gray-400">{Math.round(percentage)}%</span>
         </div>
       </div>
     );
   };
 
   return (
-    <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-6 mb-6">
-      <h3 className="text-2xl font-black text-gray-800 mb-4">📊 Today's Macro Progress</h3>
+    <div className="bg-purple-50 dark:bg-gray-900 rounded-2xl p-6 mb-6">
+      <h3 className="text-2xl font-black text-gray-800 dark:text-white mb-4">📊 Today's Macro Progress</h3>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         <MacroItem
           label="Calories"
           consumed={progress.calories.consumed}

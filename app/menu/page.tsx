@@ -48,15 +48,15 @@ export default async function MenuPage() {
   const data = await getMenuData();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50/30 to-blue-50/30">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-4">
+    <div className="min-h-screen bg-slate-50 dark:bg-black">
+      <div className="max-w-7xl mx-auto px-4 py-4 sm:py-8">
+        <div className="mb-6 sm:mb-8">
+          <div className="flex justify-between items-center mb-2 sm:mb-4">
             <div>
-              <h1 className="text-5xl font-bold bg-gradient-to-r from-gray-900 via-purple-900 to-blue-900 bg-clip-text text-transparent mb-3">
+              <h1 className="text-2xl sm:text-5xl font-bold text-purple-600 dark:bg-gradient-to-r dark:from-[#C9A530] dark:via-[#EDD96A] dark:to-[#B8943A] dark:bg-clip-text dark:text-transparent mb-1 sm:mb-3">
                 Menu Explorer
               </h1>
-              <p className="text-lg text-gray-600 font-medium">
+              <p className="text-sm sm:text-lg text-gray-600 dark:text-gray-400 font-medium">
                 {data.items.length} items • {data.diningHalls.length} dining halls
               </p>
             </div>

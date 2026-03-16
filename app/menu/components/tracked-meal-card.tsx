@@ -33,12 +33,12 @@ export function TrackedMealCard({ meal }: TrackedMealCardProps) {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-4 border border-gray-200 hover:border-purple-300 transition-all">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 border border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-[#C9A530] transition-all">
       {/* Header */}
       <div className="flex justify-between items-start mb-3">
         <div>
-          <h4 className="font-bold text-gray-800">{meal.menuItem.name}</h4>
-          <p className="text-xs text-gray-500">
+          <h4 className="font-bold text-gray-800 dark:text-white">{meal.menuItem.name}</h4>
+          <p className="text-xs text-gray-500 dark:text-gray-400">
             {meal.menuItem.diningHall} • {formatTime(meal.timestamp)}
             {meal.source === 'recommendation' && ' • ✨ AI Pick'}
           </p>
@@ -54,10 +54,10 @@ export function TrackedMealCard({ meal }: TrackedMealCardProps) {
       </div>
 
       {/* Nutrition summary */}
-      <div className="flex gap-3 text-sm">
+      <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm">
         <div>
-          <span className="text-gray-600">Cals:</span>{' '}
-          <span className="font-semibold text-purple-700">{meal.menuItem.calories || 'N/A'}</span>
+          <span className="text-gray-600 dark:text-gray-400">Cals:</span>{' '}
+          <span className="font-semibold text-purple-700 dark:text-[#C9A530]">{meal.menuItem.calories || 'N/A'}</span>
         </div>
         <div>
           <span className="text-gray-600">P:</span>{' '}
