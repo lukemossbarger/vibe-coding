@@ -13,15 +13,15 @@ export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
   ] as const;
 
   return (
-    <div className="flex gap-2 border-b-2 border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50 px-6 py-3">
+    <div className="flex gap-2 border-b-2 border-purple-200 dark:border-gray-700 bg-purple-50 dark:bg-gray-900 px-6 py-3">
       {tabs.map((tab) => (
         <button
           key={tab.id}
           onClick={() => onTabChange(tab.id)}
           className={`px-6 py-2.5 rounded-t-2xl font-bold transition-all ${
             activeTab === tab.id
-              ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg'
-              : 'bg-white text-gray-700 hover:bg-purple-100'
+              ? 'bg-purple-600 dark:bg-gradient-to-r dark:from-[#C9A530] dark:via-[#EDD96A] dark:to-[#B8943A] dark:hover:from-[#A88928] dark:hover:via-[#D4BC50] dark:hover:to-[#9A7820] text-white dark:text-gray-900 shadow-lg'
+              : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-purple-100 dark:hover:bg-gray-700'
           }`}
         >
           {tab.label}

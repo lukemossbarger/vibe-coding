@@ -14,6 +14,7 @@ import { Recommendations } from "./recommendations";
 import { TabNavigation } from "./components/tab-navigation";
 import { RecommendationsTab } from "./components/recommendations-tab";
 import { TodaysMealsTab } from "./components/todays-meals-tab";
+import { ThemeToggle } from "@/app/components/theme-toggle";
 
 type MenuItem = {
   id: string;
@@ -253,7 +254,7 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
     <>
     <div className="space-y-8">
       {/* Compact Sticky Filter Bar */}
-      <div className="sticky top-0 z-30 bg-gradient-to-r from-white via-purple-50/50 to-blue-50/50 backdrop-blur-lg border-b border-purple-100 shadow-lg">
+      <div className="sticky top-0 z-30 bg-white dark:bg-gray-950 backdrop-blur-lg border-b border-purple-100 dark:border-gray-700 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 py-4">
           {/* Top Row: Date, Time, Search, Profile */}
           <div className="flex flex-wrap items-center gap-3 mb-3">
@@ -261,39 +262,40 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="px-3 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
+              className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 dark:focus:ring-[#C9A530] focus:border-transparent bg-white dark:bg-gray-800 dark:text-white"
             />
             <input
               type="time"
               value={selectedTime}
               onChange={(e) => setSelectedTime(e.target.value)}
-              className="px-3 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
+              className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 dark:focus:ring-[#C9A530] focus:border-transparent bg-white dark:bg-gray-800 dark:text-white"
             />
-            <label className="flex items-center gap-2 cursor-pointer px-3 py-2 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+            <label className="flex items-center gap-2 cursor-pointer px-3 py-2 bg-gray-50 dark:bg-gray-800 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
               <input
                 type="checkbox"
                 checked={showOnlyOpen}
                 onChange={(e) => setShowOnlyOpen(e.target.checked)}
-                className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                className="w-4 h-4 text-purple-600 dark:text-[#C9A530] border-gray-300 dark:border-gray-600 rounded focus:ring-purple-500 dark:focus:ring-[#C9A530]"
               />
-              <span className="text-sm font-medium text-gray-700">Open Only</span>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Open Only</span>
             </label>
             <input
               type="text"
               placeholder="Search dishes..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-1 min-w-[200px] px-4 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="flex-1 min-w-[200px] px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 dark:focus:ring-[#C9A530] focus:border-transparent dark:bg-gray-800 dark:text-white dark:placeholder-gray-400"
             />
             <button
               onClick={() => setShowProfileModal(!showProfileModal)}
-              className="px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-medium hover:from-purple-700 hover:to-purple-800 transition-all shadow-sm hover:shadow-md flex items-center gap-2"
+              className="px-4 py-2 bg-purple-600 dark:bg-gradient-to-r dark:from-[#C9A530] dark:via-[#EDD96A] dark:to-[#B8943A] text-white dark:text-gray-900 rounded-xl font-medium hover:bg-purple-700 dark:hover:from-[#A88928] dark:hover:via-[#D4BC50] dark:hover:to-[#9A7820] transition-all shadow-sm hover:shadow-md flex items-center gap-2 shrink-0"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
               {userProfile.fitnessGoal ? "Profile" : "Setup"}
             </button>
+            <ThemeToggle />
           </div>
 
           {/* Second Row: Hall, Meal, Dietary Filters */}
@@ -301,7 +303,7 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
             <select
               value={selectedHall}
               onChange={(e) => setSelectedHall(e.target.value)}
-              className="px-3 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
+              className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 dark:focus:ring-[#C9A530] focus:border-transparent bg-white dark:bg-gray-800 dark:text-white"
             >
               <option value="all">All Halls</option>
               {diningHalls.map((hall) => (
@@ -313,14 +315,14 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
             <select
               value={selectedMeal}
               onChange={(e) => setSelectedMeal(e.target.value)}
-              className="px-3 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
+              className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 dark:focus:ring-[#C9A530] focus:border-transparent bg-white dark:bg-gray-800 dark:text-white"
             >
               <option value="all">All Meals</option>
               <option value="breakfast">Breakfast</option>
               <option value="lunch">Lunch</option>
               <option value="dinner">Dinner</option>
             </select>
-            <div className="h-6 w-px bg-gray-300 mx-1"></div>
+            <div className="h-6 w-px bg-gray-300 dark:bg-gray-600 mx-1"></div>
             {[
               { key: "vegetarian", label: "🌱 Vegetarian" },
               { key: "vegan", label: "🥬 Vegan" },
@@ -334,8 +336,8 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
                 onClick={() => toggleDietaryFilter(key as keyof typeof dietaryFilters)}
                 className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
                   dietaryFilters[key as keyof typeof dietaryFilters]
-                    ? "bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-sm"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    ? "bg-purple-600 dark:bg-gradient-to-r dark:from-[#C9A530] dark:via-[#EDD96A] dark:to-[#B8943A] text-white dark:text-gray-900 shadow-sm"
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600"
                 }`}
               >
                 {label}
@@ -353,12 +355,12 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
         <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
         {/* Results Count */}
         <div className="flex items-center justify-between px-2">
-          <h3 className="text-2xl font-bold text-gray-900">
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
             {Object.keys(itemsByDiningHall).length === 0
               ? "No Dining Halls Available"
               : `${Object.keys(itemsByDiningHall).length} Dining ${Object.keys(itemsByDiningHall).length === 1 ? "Hall" : "Halls"}`}
           </h3>
-          <span className="text-sm text-gray-600 font-medium">
+          <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
             {filteredItems.length} {filteredItems.length === 1 ? "item" : "items"} total
           </span>
         </div>
@@ -373,20 +375,20 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
             return (
               <div
                 key={diningHall}
-                className="bg-gradient-to-br from-white via-purple-50/20 to-blue-50/30 rounded-3xl shadow-xl overflow-hidden border-2 border-purple-100 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300"
+                className="bg-white dark:bg-gray-900 rounded-3xl shadow-xl overflow-hidden border-2 border-purple-100 dark:border-gray-700 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300"
               >
                 {/* Dining Hall Header with Vibrant Gradient */}
                 <div className={`px-8 py-6 ${
                   isOpen
-                    ? "bg-gradient-to-r from-emerald-400 via-green-500 to-teal-500 shadow-lg"
-                    : "bg-gradient-to-r from-slate-400 via-gray-500 to-slate-500"
+                    ? "bg-purple-600 dark:bg-gradient-to-r dark:from-[#C9A530] dark:via-[#EDD96A] dark:to-[#B8943A] shadow-lg"
+                    : "bg-gray-500 dark:bg-gray-700"
                 }`}>
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <h3 className="text-2xl font-bold text-white mb-1">
+                      <h3 className="text-2xl font-bold text-white dark:text-gray-900 mb-1">
                         {diningHall.replace(" Dining Commons", "").replace("Foster Walker ", "Foster Walker")}
                       </h3>
-                      <div className="flex items-center gap-3 text-white/90">
+                      <div className="flex items-center gap-3 text-white/90 dark:text-gray-900/80">
                         {isOpen && currentMeal && mealTime ? (
                           <>
                             <span className="text-sm font-medium capitalize">{currentMeal}</span>
@@ -404,7 +406,7 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-300 opacity-75"></span>
                           <span className="relative inline-flex rounded-full h-4 w-4 bg-yellow-400 shadow-lg"></span>
                         </span>
-                        <span className="text-white font-black text-base tracking-wide drop-shadow-lg">OPEN NOW</span>
+                        <span className="text-white dark:text-gray-900 font-black text-base tracking-wide drop-shadow-lg">OPEN NOW</span>
                       </div>
                     )}
                   </div>
@@ -416,15 +418,15 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
                     {hallItems.map((item) => (
                       <div
                         key={item.id}
-                        className="bg-gradient-to-br from-white via-purple-50/30 to-blue-50/40 rounded-2xl border-2 border-purple-200 hover:border-purple-400 hover:shadow-xl hover:scale-105 transition-all duration-300 p-5 group cursor-pointer"
+                        className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-purple-200 dark:border-gray-600 hover:border-purple-400 dark:hover:border-[#C9A530] hover:shadow-xl hover:scale-105 transition-all duration-300 p-5 group cursor-pointer"
                       >
                         {/* Item Header */}
                         <div className="mb-3">
-                          <h4 className="font-semibold text-base text-gray-900 mb-1 group-hover:text-purple-700 transition-colors">
+                          <h4 className="font-semibold text-base text-gray-900 dark:text-white mb-1 group-hover:text-purple-700 dark:group-hover:text-[#C9A530] transition-colors">
                             {item.name}
                           </h4>
                           <div className="flex items-center gap-2 text-xs text-gray-600">
-                            <span className="capitalize font-medium text-purple-600">{item.mealPeriod}</span>
+                            <span className="capitalize font-medium text-purple-600 dark:text-[#C9A530]">{item.mealPeriod}</span>
                             {item.station && (
                               <>
                                 <span>•</span>
@@ -436,28 +438,28 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
 
                         {/* Nutrition Info */}
                         {item.calories && (
-                          <div className="mb-3 p-3 bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl border-2 border-purple-200 shadow-sm">
+                          <div className="mb-3 p-3 bg-purple-50 dark:bg-gray-700 rounded-xl border-2 border-purple-200 dark:border-gray-600 shadow-sm">
                             <div className="grid grid-cols-2 gap-2 text-xs">
                               <div className="flex justify-between">
-                                <span className="text-gray-600">Cal</span>
-                                <span className="font-bold text-gray-900">{item.calories}</span>
+                                <span className="text-gray-600 dark:text-gray-400">Cal</span>
+                                <span className="font-bold text-gray-900 dark:text-white">{item.calories}</span>
                               </div>
                               {item.protein && (
                                 <div className="flex justify-between">
-                                  <span className="text-gray-600">Protein</span>
-                                  <span className="font-bold text-gray-900">{item.protein}g</span>
+                                  <span className="text-gray-600 dark:text-gray-400">Protein</span>
+                                  <span className="font-bold text-gray-900 dark:text-white">{item.protein}g</span>
                                 </div>
                               )}
                               {item.carbs && (
                                 <div className="flex justify-between">
-                                  <span className="text-gray-600">Carbs</span>
-                                  <span className="font-bold text-gray-900">{item.carbs}g</span>
+                                  <span className="text-gray-600 dark:text-gray-400">Carbs</span>
+                                  <span className="font-bold text-gray-900 dark:text-white">{item.carbs}g</span>
                                 </div>
                               )}
                               {item.fat && (
                                 <div className="flex justify-between">
-                                  <span className="text-gray-600">Fat</span>
-                                  <span className="font-bold text-gray-900">{item.fat}g</span>
+                                  <span className="text-gray-600 dark:text-gray-400">Fat</span>
+                                  <span className="font-bold text-gray-900 dark:text-white">{item.fat}g</span>
                                 </div>
                               )}
                             </div>
@@ -552,14 +554,14 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
 
         {/* Empty State */}
         {filteredItems.length === 0 && (
-          <div className="text-center py-20 bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 rounded-3xl shadow-xl border-2 border-purple-200">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-purple-200 via-pink-200 to-blue-200 rounded-3xl mb-6 shadow-lg">
-              <svg className="w-8 h-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="text-center py-20 bg-purple-50 dark:bg-gray-900 rounded-3xl shadow-xl border-2 border-purple-200 dark:border-gray-700">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-purple-200 dark:bg-gray-700 rounded-3xl mb-6 shadow-lg">
+              <svg className="w-8 h-8 text-purple-600 dark:text-[#C9A530]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">No items found</h3>
-            <p className="text-gray-600 max-w-md mx-auto">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No items found</h3>
+            <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
               Try adjusting your filters or check back later when dining halls are open.
             </p>
           </div>

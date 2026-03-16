@@ -256,13 +256,13 @@ export function RecommendationsTab({
   return (
     <div className="max-w-6xl mx-auto p-6">
       {/* Header */}
-      <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 mb-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-2xl font-black text-gray-800">
+            <h2 className="text-2xl font-black text-gray-800 dark:text-white">
               AI-Powered Recommendations
             </h2>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
               Get personalized meal suggestions based on your nutrition goals
             </p>
           </div>
@@ -272,7 +272,7 @@ export function RecommendationsTab({
             className={`px-6 py-3 rounded-xl font-bold transition-all ${
               loading || !hasEnoughInfo || availableItems.length === 0
                 ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:shadow-lg hover:scale-105"
+                : "bg-purple-600 dark:bg-gradient-to-r dark:from-[#C9A530] dark:via-[#EDD96A] dark:to-[#B8943A] text-white dark:text-gray-900 hover:shadow-lg hover:scale-105 dark:hover:from-[#A88928] dark:hover:via-[#D4BC50] dark:hover:to-[#9A7820]"
             }`}
           >
             {loading ? (
@@ -312,21 +312,21 @@ export function RecommendationsTab({
           {recommendations.map((rec, index) => (
             <div
               key={index}
-              className="bg-white rounded-2xl shadow-lg border-2 border-purple-200 hover:border-purple-400 transition-all hover:shadow-xl overflow-hidden flex flex-col"
+              className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg border-2 border-purple-200 dark:border-gray-700 hover:border-purple-400 dark:hover:border-[#C9A530] transition-all hover:shadow-xl overflow-hidden flex flex-col"
             >
               {/* Card Header */}
-              <div className="bg-gradient-to-r from-purple-600 to-blue-600 px-6 py-4">
+              <div className="bg-purple-600 dark:bg-gradient-to-r dark:from-[#C9A530] dark:via-[#EDD96A] dark:to-[#B8943A] px-6 py-4">
                 <div className="flex items-center gap-3">
                   <div className="bg-white/20 backdrop-blur-sm w-10 h-10 rounded-full flex items-center justify-center font-black text-lg text-white flex-shrink-0">
                     {index + 1}
                   </div>
-                  <h3 className="text-lg font-bold text-white">{rec.title}</h3>
+                  <h3 className="text-lg font-bold text-white dark:text-gray-900">{rec.title}</h3>
                 </div>
               </div>
 
               <div className="p-6 flex flex-col flex-1">
                 {/* AI Description */}
-                <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-4 mb-4">
+                <div className="bg-purple-50 dark:bg-gray-800 rounded-xl p-4 mb-4">
                   <p className="text-sm text-gray-700 leading-relaxed">
                     {rec.description}
                   </p>
@@ -346,10 +346,10 @@ export function RecommendationsTab({
                       return (
                         <div
                           key={item.id}
-                          className="flex items-center gap-3 bg-gray-50 rounded-xl p-3 border border-gray-200"
+                          className="flex items-center gap-3 bg-gray-50 dark:bg-gray-800 rounded-xl p-3 border border-gray-200 dark:border-gray-700"
                         >
                           <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-sm text-gray-800 truncate">
+                            <p className="font-semibold text-sm text-gray-800 dark:text-white truncate">
                               {item.name}
                             </p>
                             <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
@@ -382,7 +382,7 @@ export function RecommendationsTab({
                                 ? "bg-green-500 text-white"
                                 : isAdding
                                 ? "bg-gray-300 text-gray-500"
-                                : "bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:shadow-md"
+                                : "bg-purple-600 dark:bg-gradient-to-r dark:from-[#C9A530] dark:via-[#EDD96A] dark:to-[#B8943A] text-white dark:text-gray-900 hover:shadow-md dark:hover:from-[#A88928] dark:hover:via-[#D4BC50] dark:hover:to-[#9A7820]"
                             }`}
                           >
                             {isAdded ? "Added" : isAdding ? "..." : "+ Add"}

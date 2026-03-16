@@ -28,12 +28,12 @@ export function RecommendationCard({ menuItem, reasoning }: RecommendationCardPr
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-6 border-2 border-purple-200 hover:border-purple-400 transition-all">
+    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 border-2 border-purple-200 dark:border-gray-700 hover:border-purple-400 dark:hover:border-[#C9A530] transition-all">
       {/* Header */}
       <div className="flex justify-between items-start mb-4">
         <div>
-          <h3 className="text-xl font-bold text-gray-800">{menuItem.name}</h3>
-          <p className="text-sm text-gray-500">
+          <h3 className="text-xl font-bold text-gray-800 dark:text-white">{menuItem.name}</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             {menuItem.diningHall} • {menuItem.station || 'General'}
           </p>
         </div>
@@ -65,9 +65,9 @@ export function RecommendationCard({ menuItem, reasoning }: RecommendationCardPr
       </div>
 
       {/* AI Reasoning */}
-      <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4 mb-4">
-        <p className="text-sm font-semibold text-purple-800 mb-2">✨ Why this meal?</p>
-        <p className="text-sm text-gray-700">{reasoning}</p>
+      <div className="bg-purple-50 dark:bg-gray-800 rounded-lg p-4 mb-4">
+        <p className="text-sm font-semibold text-purple-800 dark:bg-gradient-to-r dark:from-[#C9A530] dark:via-[#EDD96A] dark:to-[#B8943A] dark:bg-clip-text dark:text-transparent mb-2">✨ Why this meal?</p>
+        <p className="text-sm text-gray-700 dark:text-gray-300">{reasoning}</p>
       </div>
 
       {/* Add to Today button */}
@@ -79,7 +79,7 @@ export function RecommendationCard({ menuItem, reasoning }: RecommendationCardPr
             ? 'bg-green-500 text-white'
             : isAdding
             ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
-            : 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:shadow-lg hover:scale-105'
+            : 'bg-purple-600 dark:bg-gradient-to-r dark:from-[#C9A530] dark:via-[#EDD96A] dark:to-[#B8943A] text-white dark:text-gray-900 hover:shadow-lg hover:scale-105 dark:hover:from-[#A88928] dark:hover:via-[#D4BC50] dark:hover:to-[#9A7820]'
         }`}
       >
         {isAdded ? '✓ Added to Today' : isAdding ? 'Adding...' : '+ Add to Today'}
