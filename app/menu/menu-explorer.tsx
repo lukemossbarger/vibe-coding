@@ -504,9 +504,12 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
                 className="bg-white dark:bg-gray-900 rounded-3xl shadow-xl overflow-hidden border-2 border-purple-100 dark:border-gray-700 transition-all duration-300"
               >
                 {/* Clickable Dining Hall Header */}
-                <button
+                <div
                   onClick={() => toggleHall(diningHall)}
-                  className={`w-full text-left px-4 py-4 sm:px-8 sm:py-6 ${
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => e.key === "Enter" || e.key === " " ? toggleHall(diningHall) : undefined}
+                  className={`w-full text-left px-4 py-4 sm:px-8 sm:py-6 cursor-pointer ${
                     isOpen
                       ? "bg-purple-600 dark:bg-gradient-to-r dark:from-[#C9A530] dark:via-[#EDD96A] dark:to-[#B8943A]"
                       : "bg-gray-500 dark:bg-gray-700"
@@ -573,7 +576,7 @@ export function MenuExplorer({ items, diningHalls }: MenuExplorerProps) {
                       </svg>
                     </div>
                   </div>
-                </button>
+                </div>
 
                 {/* Collapsible body: stations */}
                 {!isHallCollapsed && (
