@@ -10,20 +10,27 @@ const ThemeContext = createContext<{ theme: Theme; toggleTheme: () => void }>({
 });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>("light");
+  const [theme, setTheme] = useState<Theme>(() => {
+    // Initialize from localStorage if available (runs only on client)
+    if (typeof window !== "undefined") {
+      return (localStorage.getItem("theme") as Theme) ?? "light";
+    }
+    return "light";
+  });
 
+  // Sync the `dark` class on <html> whenever theme changes
   useEffect(() => {
-    const saved = localStorage.getItem("theme") as Theme | null;
-    const resolved = saved ?? "light";
-    setTheme(resolved);
-    document.documentElement.classList.toggle("dark", resolved === "dark");
-  }, []);
+    const html = document.documentElement;
+    if (theme === "dark") {
+      html.classList.add("dark");
+    } else {
+      html.classList.remove("dark");
+    }
+    localStorage.setItem("theme", theme);
+  }, [theme]);
 
   const toggleTheme = () => {
-    const next = theme === "light" ? "dark" : "light";
-    setTheme(next);
-    localStorage.setItem("theme", next);
-    document.documentElement.classList.toggle("dark", next === "dark");
+    setTheme((prev) => (prev === "light" ? "dark" : "light"));
   };
 
   return (
